@@ -50,6 +50,7 @@ def getKey():
     return key
 
 def record(base_cyclic):
+
     cur_joint = np.zeros(len(base_cyclic.RefreshFeedback().actuators))
 
     joint_list = None
@@ -74,6 +75,7 @@ def record(base_cyclic):
             joint_list = np.vstack((joint_list, cur_joint))
             xyz_list = np.vstack((xyz_list, cur_end_xyz))
 
+        print("Curr Gripper X {}, Y {}, Z {}".format(*cur_end_xyz))
 
 
 
@@ -95,6 +97,7 @@ def main():
         input("Connect joystick and press any key to continue")
 
         key = input("Press S to start recording")
+
         if key == 's':
             joint_trajectory = record(base_cyclic)
 
