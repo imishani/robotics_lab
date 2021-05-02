@@ -282,11 +282,12 @@ if __name__ == "__main__":
             base = BaseClient(router)
             base_cyclic = BaseCyclicClient(router)
 
-            input("Remove any objects near the Arm and press Enter")
+            input("Remove any objects near the arm and press Enter")
             # Example core
             success = True
             flag = True
             display = True
+
             while flag and success:
 
                 if display:
