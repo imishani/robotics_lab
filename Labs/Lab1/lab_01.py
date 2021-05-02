@@ -29,9 +29,11 @@ def getKey():
     return key
 
 def record(base_cyclic):
+
     cur_joint = np.zeros(len(base_cyclic.RefreshFeedback().actuators))
     joint_list = None
     xyz_list = None
+
     while True:
         try:
             for i in range(len(base_cyclic.RefreshFeedback().actuators)):
@@ -50,6 +52,7 @@ def record(base_cyclic):
                 xyz_list = np.vstack((xyz_list, cur_end_xyz))
 
             print("Curr Gripper X {}, Y {}, Z {} \n To stop recording press Ctrl+C".format(*cur_end_xyz))
+
         except KeyboardInterrupt:
             return (joint_list, xyz_list)
 
@@ -90,6 +93,7 @@ if __name__ == "__main__":
             base = BaseClient(router)
             base_cyclic = BaseCyclicClient(router)
             input("Connect joystick and press any key to continue")
+
             try:
                 print("Press s to start recording")
                 status = 1
