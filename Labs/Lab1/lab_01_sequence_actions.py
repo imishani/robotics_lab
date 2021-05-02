@@ -169,7 +169,6 @@ def example_move_to_home_position(base):
         print("Timeout on action notification wait")
     return finished
 
-
 def example_create_sequence(base, base_cyclic):
 
     print("Creating Action for Sequence")
