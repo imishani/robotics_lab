@@ -1,23 +1,7 @@
 #! /usr/bin/env python3
 
-###
-# KINOVA (R) KORTEX (TM)
-#
-# Copyright (c) 2018 Kinova inc. All rights reserved.
-#
-# This software may be modified and distributed
-# under the terms of the BSD 3-Clause license.
-#
-# Refer to the LICENSE file for details.
-#
-###
 import numpy as np
-import sys
-import os
-import time
-import threading
-
-import sys, select, os
+import sys, select, os, time
 if os.name == 'nt':
   import msvcrt
 else:
@@ -25,12 +9,7 @@ else:
 
 from kortex_api.autogen.client_stubs.BaseClientRpc import BaseClient
 from kortex_api.autogen.client_stubs.BaseCyclicClientRpc import BaseCyclicClient
-from kortex_api.autogen.messages import Base_pb2, BaseCyclic_pb2, Common_pb2
-import signal
-import sys
-import time
-import threading
-import keyboard
+
 
 e = """
 Communications Failed
@@ -94,13 +73,11 @@ def save():
     with open(logdir + '/data' + '.pkl', 'wb') as h:
         pickle.dump(joint_trajectory, h)
 
-
 if __name__ == "__main__":
 
     if os.name != 'nt':
         settings = termios.tcgetattr(sys.stdin)
     try:
-        # base_cyclic = main()
         sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
         import utilities
 
