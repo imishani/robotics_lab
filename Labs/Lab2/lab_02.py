@@ -45,13 +45,6 @@ a1,a2,a3,a4,a5,a6 = symbols('a1:7')
 d1,d2,d3,d4,d5,d6 = symbols('d1:7')
 q1,q2,q3,q4,q5,q6 = symbols('q1:7')
 
-# Create Modified DH parameters
-subs_dict1 = {  alpha1: 0.    , a1:0          , d1: 128.3   , q1: q1,
-                alpha2:pi       , a2:280        , d2: 30            , q2: q2 + pi/2,
-				alpha3:pi/2     , a3:0          , d3: 20            , q3: q3 + pi/2,
-                alpha4:pi /2    , a4:0          , d4: 140.0+105.0       , q4: q4 + pi/2,
-                alpha5: pi /2   , a5:0          , d5:28.5+28.5      , q5: q5 + pi,
-                alpha6:0        , a6:0          , d6:105.0+130.0        , q6: q6 + pi/2 }
 
 subs_dict = {   alpha1: pi/2    , a1:0          , d1: 128.3+115.0   , q1: q1,
                 alpha2:pi       , a2:280        , d2: 30            , q2: q2 + pi/2,
