@@ -35,6 +35,7 @@ import numpy as np
 from sympy import *
 import matplotlib.pyplot as plt
 import math
+
 e = """
 Communications Failed
 """

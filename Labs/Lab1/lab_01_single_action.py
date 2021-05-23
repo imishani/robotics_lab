@@ -112,27 +112,29 @@ def example_move_to_home_position(base):
     return finished
 
 
-def example_angular_action_movement(base, base_cyclic):
+def example_angular_action_movement(base, base_cyclic, Q = None):
     print("Starting angular action movement ...\n Adding 10 deg to each motor")
-
-    while not ok:
-        dtheta = float(input("Enter required angular delta for each of the motors"))
-        if abs(dtheta) < 10:
-            print('Input delta are ok, executing')
-            ok = True
-        else:
-            print('Only less then 10 [deg] delta are valid.')
-
     action = Base_pb2.Action()
     action.name = "Example angular action movement"
     action.application_data = ""
-
+    ok = False
     actuator_count = base.GetActuatorCount()
+    if Q:
+        for joint_id in range(actuator_count):
+            joint_angle = action.reach_joint_angles.joint_angles.joint_angles.add()
+            joint_angle.value = Q[joint_id]
+    else:
+        while not ok:
+            dtheta = float(input("Enter required angular delta for each of the motors"))
+            if abs(dtheta) < 10:
+                print('Input delta are ok, executing')
+                ok = True
+            else:
+                print('Only less then 10 [deg] delta are valid.')
 
-    # Place arm straight up
-    for joint_id in range(actuator_count):
-        joint_angle = action.reach_joint_angles.joint_angles.joint_angles.add()
-        joint_angle.value = base_cyclic.RefreshFeedback().actuators[joint_id].position + dtheta
+        for joint_id in range(actuator_count):
+            joint_angle = action.reach_joint_angles.joint_angles.joint_angles.add()
+            joint_angle.value = base_cyclic.RefreshFeedback().actuators[joint_id].position + dtheta
 
     e = threading.Event()
     notification_handle = base.OnNotificationActionTopic(
@@ -154,32 +156,40 @@ def example_angular_action_movement(base, base_cyclic):
     return finished
 
 
-def example_cartesian_action_movement(base, base_cyclic):
+def example_cartesian_action_movement(base, base_cyclic, C = None):
     print("Starting Cartesian action movement ...")
-
-    ok = False
-    while not ok:
-        d_y = float(input("Enter required delta y for the end effector position"))
-        d_x = float(input("Enter required delta x for the end effector position"))
-        if abs(d_y) < 0.1 and abs(d_x) < 0.1:
-            print('Input deltas are ok, executing')
-            ok = True
-        else:
-            print('Only less then 0.1 [m] delta inputs are valid.')
 
     action = Base_pb2.Action()
     action.name = "Example Cartesian action movement"
     action.application_data = ""
 
     feedback = base_cyclic.RefreshFeedback()
+    if C:
+        cartesian_pose = action.reach_pose.target_pose
+        cartesian_pose.x = C[0]  # (meters)
+        cartesian_pose.y = C[1]  # (meters)
+        cartesian_pose.z = C[2]  # (meters)
+        cartesian_pose.theta_x = C[3]  # (degrees)
+        cartesian_pose.theta_y = C[4]  # (degrees)
+        cartesian_pose.theta_z = C[5]  # (degrees)
+    else:
+        ok = False
+        while not ok:
+            d_y = float(input("Enter required delta y for the end effector position"))
+            d_x = float(input("Enter required delta x for the end effector position"))
+            if abs(d_y) < 0.1 and abs(d_x) < 0.1:
+                print('Input deltas are ok, executing')
+                ok = True
+            else:
+                print('Only less then 0.1 [m] delta inputs are valid.')
 
-    cartesian_pose = action.reach_pose.target_pose
-    cartesian_pose.x = feedback.base.tool_pose_x  # (meters)
-    cartesian_pose.y = feedback.base.tool_pose_y - d_y  # (meters)
-    cartesian_pose.z = feedback.base.tool_pose_z - d_x  # (meters)
-    cartesian_pose.theta_x = feedback.base.tool_pose_theta_x  # (degrees)
-    cartesian_pose.theta_y = feedback.base.tool_pose_theta_y  # (degrees)
-    cartesian_pose.theta_z = feedback.base.tool_pose_theta_z  # (degrees)
+        cartesian_pose = action.reach_pose.target_pose
+        cartesian_pose.x = feedback.base.tool_pose_x  # (meters)
+        cartesian_pose.y = feedback.base.tool_pose_y - d_y  # (meters)
+        cartesian_pose.z = feedback.base.tool_pose_z - d_x  # (meters)
+        cartesian_pose.theta_x = feedback.base.tool_pose_theta_x  # (degrees)
+        cartesian_pose.theta_y = feedback.base.tool_pose_theta_y  # (degrees)
+        cartesian_pose.theta_z = feedback.base.tool_pose_theta_z  # (degrees)
 
     e = threading.Event()
     notification_handle = base.OnNotificationActionTopic(
