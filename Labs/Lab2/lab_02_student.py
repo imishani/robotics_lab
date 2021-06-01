@@ -31,7 +31,6 @@ class robotic_arm():
         self.dh_params = {}
         self.tf_matrices_list = []
 
-        self.current_pos = []
 
     def set_joints(self, joint_number):
         if joint_number > 0:
@@ -81,70 +80,81 @@ class robotic_arm():
         return TF
 
     def forward_kinematics(self, theta_list):
+        """
+        calculate forward kinematic for a desired theta_list
+        :param data: theta_list
+        :type data: list
+        :return: forward kinematics list SE-3  of the form [x y z roll pitch yaw] w.r.t base_link
+        :rtype: list
+        """
+
         theta_dict = {}
+        # homogenous transformation matrix from base_link to end_effector [type: syms]
         T_0G = self.tf_matrices_list[-1]
 
         for i in range(len(theta_list)):
             theta_dict[self.q[i]] = theta_list[i]
 
-        temp = T_0G.evalf(subs=theta_dict, chop=True, maxn=4)
-        x = [np.array(temp[0, -1]).astype(np.float64)]
-        y = [np.array(temp[1, -1]).astype(np.float64)]
-        z = [np.array(temp[2, -1]).astype(np.float64)]
-        R = Rotation.from_matrix(temp[:3, :3])
-        Euler = R.as_rotvec()
-        roll = [np.array(Euler[0]).astype(np.float64)]
-        pitch = [np.array(Euler[1]).astype(np.float64)]
-        yaw = [np.array(Euler[2]).astype(np.float64)]
-        self.current_pos.append(np.array([x, y, z, roll, pitch, yaw]))
+        # homogenous transformation matrix from base_link to end_effector [type: numeric matrix]
+        T_0G_eval = T_0G.evalf(subs=theta_dict, chop=True, maxn=4)
+
+        # TODO: calculate [x,y,z,roll,pitch,yaw]
+
+        self.current_pos = np.array([x, y, z, roll, pitch, yaw])
 
         return self.current_pos
 
     def jacobian_func(self):
+        """
+        calculate jacobian function of the arm
+        :param data:
+        :type data:
+        :return: jacobian_mat
+        :rtype: 6x6 symbolic matrix
+        """
+        # homogenous transformation matrix from base_link to end_effector [type: syms]
         T_0G = self.tf_matrices_list[-1]
 
-        self.jacobian_mat = [diff(T_0G[:3, -1], self.q[i]).reshape(1, 3) for i in range(len(self.q))]
-        # self.jacobian_mat = np.vstack((self.jacobian_mat, ))
-        self.jacobian_mat = Matrix(self.jacobian_mat).T
-        # to_jac = [list(A[:3, 2]) for A in self.tf_matrices_list]
-        temp = Matrix([0, 0, 1])
-        for index in range(len(self.tf_matrices_list)-1):
-            temp = temp.col_insert(0, self.tf_matrices_list[index][:3, 2])
+        # TODO: calculate the Jacobian matrix of the arm using the lecture notes ( symbolic matrix)
+        # TODO: hint - you can use automatic differentiation ('diff(A,by_who)')
 
-        self.jacobian_mat = Matrix(BlockMatrix([[self.jacobian_mat], [temp]]))
+        self.jacobian_mat = Matrix([])# fill
+
+        return self.jacobian_mat
 
     def inverse_kinematics(self, guess, target):
+        """
+        calculate inverse kinematics for a given gripper state configuration
+        :param data: guess, target
+        :type data:  list
+        :return: jacobian_mat
+        :rtype: 6x6 symbolic matrix
+        """
+
         error = 10.0
         tolerance = 10.0
 
-        # Initial Guess - Joint Angles
-        Q = guess
-        # X,Y expression
-        # X,Y,Z R,P,Y value for Target Position
-        target = np.matrix(target)
-        print(target.shape)
-        # Jacobian
+        Q = guess  # Initial Guess - Joint Angles
+        target = np.matrix(target)  # X,Y,Z R,P,Y value for Target Position
         self.jacobian_func()
-        # T_0G = self.tf_matrices_list[-1]
 
         error_grad = []
-
         theta_dict = {}
-
         lr = 0.1
+
+
 
         while error > tolerance:
 
             for i in range(len(Q)):
                 theta_dict[self.q[i]] = Q[i]
 
-            T_q = np.matrix(self.forward_kinematics(Q)[-1])
+            T_q = np.matrix(self.forward_kinematics(Q))
 
-            delta_T = target - T_q
+            delta_T = target - T_q # difference between current forward kinematics to the target
 
-            Q = Q + lr * (inv(np.matrix(self.jacobian_mat.evalf(subs=theta_dict, chop=True, maxn=10)).astype(
-                np.float64)) * delta_T).reshape(-1)
-            Q = Q.tolist()[0]
+            # TODO: edit the update rule base on the lecture notes
+            Q =
 
             prev_error = error
 
@@ -157,17 +167,18 @@ class robotic_arm():
 
             error_grad.append((error - prev_error))
 
-            print(error)
+            print('error' + str(error))
 
         return Q
 
     def path_plan(self, guess, target_list):
+
         Q_list = []
         for i in range(len(target_list)):
             target = target_list['t' + str( i + 1)]
             Q = self.inverse_kinematics(guess, target)
             predicted_coordinates = self.forward_kinematics(Q)
-            print('Target: {} ,  Predicted: {}'.format(target, predicted_coordinates[-1]))
+            print('Target: {} ,  Predicted: {}'.format(target, predicted_coordinates))
             Q_list.append(Q)
             guess = Q
         Q_matrix = np.matrix(Q_list)
@@ -269,63 +280,74 @@ def move_to_gripper_conf(C):
 
 if __name__ == '__main__':
 
+    # For simplicity, we used symbolic function for differentiation
+    # A tutorial can be found here: https://docs.sympy.org/latest/tutorial/index.html
+
     #######################
     ###### Part 1 #########
     #######################
 
-    arm = robotic_arm()
-    arm.set_joints(6)
-    #               alpha a d r
+    arm = robotic_arm()     # Initialize a generic robotic arm
+    arm.set_joints(6)       # Define the amount of joints
+
+    # DH params
     alpha0, alpha1, alpha2, alpha3, alpha4, alpha5, alpha6 = symbols('alpha0:7')
     a1, a2, a3, a4, a5, a6 = symbols('a1:7')
     d1, d2, d3, d4, d5, d6 = symbols('d1:7')
     q1, q2, q3, q4, q5, q6 = symbols('q1:7')
 
-    dh_subs_dict = {alpha1: pi / 2, a1: 0, d1: 128.3 + 115.0, q1: q1,
-                 alpha2: pi, a2: 280, d2: 30, q2: q2 + pi / 2,
-                 alpha3: pi / 2, a3: 0, d3: 20, q3: q3 + pi / 2,
-                 alpha4: pi / 2, a4: 0, d4: 140.0 + 105.0, q4: q4 + pi / 2,
-                 alpha5: pi / 2, a5: 0, d5: 28.5 + 28.5, q5: q5 + pi,
-                 alpha6: 0, a6: 0, d6: 105.0 + 130.0, q6: q6 + pi / 2}
+    # TODO: fill the following dict as described in the lab notes
 
-    arm.set_dh_param_dict(dh_subs_dict)
+    dh_subs_dict = {alpha1:,  a1: , d1: , q1: ,
+                    alpha2: , a2: , d2: , q2: ,
+                    alpha3: , a3: , d3: , q3: ,
+                    alpha4: , a4: , d4: , q4: ,
+                    alpha5: , a5: , d5: , q5: ,
+                    alpha6: , a6: , d6: , q6: } # [mm - radians]
 
-    angle_conf_target_dict = {'t1': [0,0,0,0,0,0], # deg
-                              't2': [0,0,0,0,0,0],
-                              't3': [0,0,0,0,0,0],
-                              't4': [0,0,0,0,0,0],
-                              't5': [0,0,0,0,0,0]}
+
+    arm.set_dh_param_dict(dh_subs_dict) # set dh paramters
+
+    # TODO: enter the desired joint state target configrations
+    angle_conf_target_dict = {'t1':  [ , , , , , ] ,
+                              't2':  [ , , , , , ] ,
+                              't3':  [ , , , , , ] ,
+                              't4':  [ , , , , , ] ,
+                              't5':  [ , , , , , ]} # [deg]
     angle_conf_eval = {}
 
+    # TODO: fill the blank line in the forward_kinematics function
     for i in range(len(angle_conf_target_dict)):
-        angle_conf_eval.update({'t'+ str(i + 1): arm.forward_kinematics(angle_conf_target_dict['t' + str(i + 1)])[-1]})
+        angle_conf_eval.update({'t'+ str(i + 1): arm.forward_kinematics(angle_conf_target_dict['t' + str(i + 1)])})
 
-    # Import arm modules and move to each configration
+    # Import arm modules and move to each configuration
     for i in range(len(angle_conf_eval)):
         move_to_angle_conf(angle_conf_eval['t'+ str(i + 1)])
+
 
     #######################
     ###### Part 2 #########
     #######################
 
+    # TODO: enter the desired joint state target configurations
     #                                  x   y   z    roll  pitch  yaw
-    gripper_conf_target_dict = {'t1': [57, -10, 1003.3, 0., 0.0, 1.],
-                                't2': [57, -10, 1003.3, 0., 0.0, 1.],
-                                't3': [57, -10, 1003.3, 0., 0.0, 1.],
-                                't4': [57, -10, 1003.3, 0., 0.0, 1.],
-                                't5': [57, -10, 1003.3, 0., 0.0, 1.]}
+    gripper_conf_target_dict = {'t1': [ , , , , , ],
+                                't2': [ , , , , , ],
+                                't3': [ , , , , , ],
+                                't4': [ , , , , , ],
+                                't5': [ , , , , , ]}
 
-    init_guess = [1.5, 1.5, 0., 0.,2.,0.]
+    # TODO: enter inital guess for the arm configuration
+    init_guess = [ , , , , , ]
+
     gripper_conf_eval = {}
+    guess = init_guess
 
-    for i in range(len(angle_conf_target_dict)):
-        angle_conf_eval.update({'t'+ str(i + 1): arm.forward_kinematics(angle_conf_target_dict['t' + str(i + 1)])[-1]})
-
-    guess = [0, 0, 0 ,0, 0, 0]
+    # TODO: fill the missing lines in the inverse_kinematics function
     for i in range(len(gripper_conf_target_dict)):
         target = gripper_conf_target_dict['t' + str(i + 1)]
         Q = arm.inverse_kinematics(guess, target)
-        predicted_coordinates = arm.forward_kinematics(Q)[-1]
+        predicted_coordinates = arm.forward_kinematics(Q)
         print('Target: {} ,  Predicted: {}'.format(target, Q))
         gripper_conf_eval.update({'t' + str(i + 1): Q})
         guess = Q
