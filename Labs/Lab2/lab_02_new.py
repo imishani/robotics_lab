@@ -317,11 +317,7 @@ if __name__ == '__main__':
 
     init_guess = [1.5, 1.5, 0., 0.,2.,0.]
     gripper_conf_eval = {}
-
-    for i in range(len(angle_conf_target_dict)):
-        angle_conf_eval.update({'t'+ str(i + 1): arm.forward_kinematics(angle_conf_target_dict['t' + str(i + 1)])[-1]})
-
-    guess = [0, 0, 0 ,0, 0, 0]
+    guess = init_guess
     for i in range(len(gripper_conf_target_dict)):
         target = gripper_conf_target_dict['t' + str(i + 1)]
         Q = arm.inverse_kinematics(guess, target)
