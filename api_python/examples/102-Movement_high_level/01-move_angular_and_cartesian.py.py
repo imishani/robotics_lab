@@ -196,11 +196,23 @@ def example_cartesian_trajectory_movement(base, base_cyclic):
     cartesian_pose.theta_y = feedback.base.tool_pose_theta_y  # (degrees)
     cartesian_pose.theta_z = feedback.base.tool_pose_theta_z  # (degrees)
 
+    cartesian_pose2 = constrained_pose.target_pose
+    cartesian_pose2.x = 0.75  # (meters)
+    cartesian_pose2.y = feedback.base.tool_pose_y - 0.1  # (meters)
+    cartesian_pose2.z = feedback.base.tool_pose_z - 0.2  # (meters)
+    cartesian_pose2.theta_x = feedback.base.tool_pose_theta_x  # (degrees)
+    cartesian_pose2.theta_y = feedback.base.tool_pose_theta_y  # (degrees)
+    cartesian_pose2.theta_z = feedback.base.tool_pose_theta_z  # (degrees)
     e = threading.Event()
     notification_handle = base.OnNotificationActionTopic(
         check_for_end_or_abort(e),
         Base_pb2.NotificationOptions()
     )
+
+
+    print("Reaching cartesian pose...")
+    base.PlayCartesianTrajectory(constrained_pose) #, constrained_pose2
+
 
     print("Reaching cartesian pose...")
     base.PlayCartesianTrajectory(constrained_pose)
@@ -234,11 +246,12 @@ def main():
         success = True
 
         success &= example_move_to_home_position(base)
-        success &= example_cartesian_action_movement(base, base_cyclic)
-        success &= example_angular_action_movement(base)
-
-        success &= example_move_to_home_position(base)
+        # success &= example_cartesian_action_movement(base, base_cyclic)
+        # success &= example_angular_action_movement(base)
+        #
+        # success &= example_move_to_home_position(base)
         success &= example_cartesian_trajectory_movement(base, base_cyclic)
+
         success &= example_angular_trajectory_movement(base)
 
         return 0 if success else 1
