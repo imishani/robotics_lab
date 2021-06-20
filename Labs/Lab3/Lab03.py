@@ -83,103 +83,6 @@ def check_for_end_or_abort(e):
 
     return check
 
-def example_angular_action_movement(base, base_cyclic, Q = None):
-    print("Starting angular action movement ...\n Adding 10 deg to each motor")
-    action = Base_pb2.Action()
-    action.name = "Example angular action movement"
-    action.application_data = ""
-    ok = False
-    actuator_count = base.GetActuatorCount()
-    if Q:
-        for joint_id in range(actuator_count):
-            joint_angle = action.reach_joint_angles.joint_angles.joint_angles.add()
-            joint_angle.value = Q[joint_id]
-    else:
-        while not ok:
-            dtheta = float(input("Enter required angular delta for each of the motors"))
-            if abs(dtheta) < 10:
-                print('Input delta are ok, executing')
-                ok = True
-            else:
-                print('Only less then 10 [deg] delta are valid.')
-
-        for joint_id in range(actuator_count):
-            joint_angle = action.reach_joint_angles.joint_angles.joint_angles.add()
-            joint_angle.value = base_cyclic.RefreshFeedback().actuators[joint_id].position + dtheta
-
-    e = threading.Event()
-    notification_handle = base.OnNotificationActionTopic(
-        check_for_end_or_abort(e),
-        Base_pb2.NotificationOptions()
-    )
-
-    print("Executing action")
-    base.ExecuteAction(action)
-
-    print("Waiting for movement to finish ...")
-    finished = e.wait(TIMEOUT_DURATION)
-    base.Unsubscribe(notification_handle)
-
-    if finished:
-        print("Angular movement completed")
-    else:
-        print("Timeout on action notification wait")
-    return finished
-
-def example_cartesian_action_movement(base, base_cyclic, C = None):
-    print("Starting Cartesian action movement ...")
-
-    action = Base_pb2.Action()
-    action.name = "Example Cartesian action movement"
-    action.application_data = ""
-
-    feedback = base_cyclic.RefreshFeedback()
-    if C:
-        cartesian_pose = action.reach_pose.target_pose
-        cartesian_pose.x = C[0]  # (meters)
-        cartesian_pose.y = C[1]  # (meters)
-        cartesian_pose.z = C[2]  # (meters)
-        cartesian_pose.theta_x = C[3]  # (degrees)
-        cartesian_pose.theta_y = C[4]  # (degrees)
-        cartesian_pose.theta_z = C[5]  # (degrees)
-    else:
-        ok = False
-        while not ok:
-            d_y = float(input("Enter required delta y for the end effector position"))
-            d_x = float(input("Enter required delta x for the end effector position"))
-            if abs(d_y) < 0.1 and abs(d_x) < 0.1:
-                print('Input deltas are ok, executing')
-                ok = True
-            else:
-                print('Only less then 0.1 [m] delta inputs are valid.')
-
-        cartesian_pose = action.reach_pose.target_pose
-        cartesian_pose.x = feedback.base.tool_pose_x  # (meters)
-        cartesian_pose.y = feedback.base.tool_pose_y - d_y  # (meters)
-        cartesian_pose.z = feedback.base.tool_pose_z - d_x  # (meters)
-        cartesian_pose.theta_x = feedback.base.tool_pose_theta_x  # (degrees)
-        cartesian_pose.theta_y = feedback.base.tool_pose_theta_y  # (degrees)
-        cartesian_pose.theta_z = feedback.base.tool_pose_theta_z  # (degrees)
-
-    e = threading.Event()
-    notification_handle = base.OnNotificationActionTopic(
-        check_for_end_or_abort(e),
-        Base_pb2.NotificationOptions()
-    )
-
-    print("Executing action")
-    base.ExecuteAction(action)
-
-    print("Waiting for movement to finish ...")
-    finished = e.wait(TIMEOUT_DURATION)
-    base.Unsubscribe(notification_handle)
-
-    if finished:
-        print("Cartesian movement completed")
-    else:
-        print("Timeout on action notification wait")
-    return finished
-
 def example_move_to_home_position(base):
     # Make sure the arm is in Single Level Servoing mode
     base_servo_mode = Base_pb2.ServoingModeInformation()
@@ -216,68 +119,6 @@ def example_move_to_home_position(base):
         print("Timeout on action notification wait")
     return finished
 
-def example_angular_trajectory_movement(base):
-    constrained_joint_angles = Base_pb2.ConstrainedJointAngles()
-
-    actuator_count = base.GetActuatorCount()
-
-    # Place arm straight up
-    for joint_id in range(actuator_count.count):
-        joint_angle = constrained_joint_angles.joint_angles.joint_angles.add()
-        joint_angle.joint_identifier = joint_id
-        joint_angle.value = 0
-
-    e = threading.Event()
-    notification_handle = base.OnNotificationActionTopic(
-        check_for_end_or_abort(e),
-        Base_pb2.NotificationOptions()
-    )
-
-    print("Reaching joint angles...")
-    base.PlayJointTrajectory(constrained_joint_angles)
-
-    print("Waiting for movement to finish ...")
-    finished = e.wait(TIMEOUT_DURATION)
-    base.Unsubscribe(notification_handle)
-
-    if finished:
-        print("Joint angles reached")
-    else:
-        print("Timeout on action notification wait")
-    return finished
-
-def example_cartesian_trajectory_movement(base, base_cyclic):
-    constrained_pose = Base_pb2.ConstrainedPose()
-
-    feedback = base_cyclic.RefreshFeedback()
-
-    cartesian_pose = constrained_pose.target_pose
-    cartesian_pose.x = feedback.base.tool_pose_x  # (meters)
-    cartesian_pose.y = feedback.base.tool_pose_y - 0.1  # (meters)
-    cartesian_pose.z = feedback.base.tool_pose_z - 0.2  # (meters)
-    cartesian_pose.theta_x = feedback.base.tool_pose_theta_x  # (degrees)
-    cartesian_pose.theta_y = feedback.base.tool_pose_theta_y  # (degrees)
-    cartesian_pose.theta_z = feedback.base.tool_pose_theta_z  # (degrees)
-
-    e = threading.Event()
-    notification_handle = base.OnNotificationActionTopic(
-        check_for_end_or_abort(e),
-        Base_pb2.NotificationOptions()
-    )
-
-    print("Reaching cartesian pose...")
-    base.PlayCartesianTrajectory(constrained_pose)
-
-    print("Waiting for movement to finish ...")
-    finished = e.wait(TIMEOUT_DURATION)
-    base.Unsubscribe(notification_handle)
-
-    if finished:
-        print("Angular movement completed")
-    else:
-        print("Timeout on action notification wait")
-    return finished
-
 def populateCartesianCoordinate(waypointInformation):
     waypoint = Base_pb2.CartesianWaypoint()
     waypoint.pose.x = waypointInformation[0]
@@ -291,7 +132,14 @@ def populateCartesianCoordinate(waypointInformation):
 
     return waypoint
 
-def example_trajectory_waypoints(base, points):
+def populateAngularPose(jointPose, durationFactor):
+    waypoint = Base_pb2.AngularWaypoint()
+    waypoint.angles.extend(jointPose)
+    waypoint.duration = durationFactor * 5.0
+
+    return waypoint
+
+def example_trajectory_task(base, points):
 
     base_servo_mode = Base_pb2.ServoingModeInformation()
     base_servo_mode.servoing_mode = Base_pb2.SINGLE_LEVEL_SERVOING
@@ -378,6 +226,88 @@ def example_trajectory_waypoints(base, points):
         print("Error found in trajectory")
         result.trajectory_error_report.PrintDebugString();
 
+def example_trajectory_config(base, angles):
+    base_servo_mode = Base_pb2.ServoingModeInformation()
+    base_servo_mode.servoing_mode = Base_pb2.SINGLE_LEVEL_SERVOING
+    base.SetServoingMode(base_servo_mode)
+
+    jointPoses = tuple(tuple())
+    product = base.GetProductConfiguration()
+
+    if (product.model == Base_pb2.ProductConfiguration__pb2.MODEL_ID_L53
+            or product.model == Base_pb2.ProductConfiguration__pb2.MODEL_ID_L31):
+        if (product.model == Base_pb2.ProductConfiguration__pb2.MODEL_ID_L31):
+            jointPoses = ((0.0, 344.0, 75.0, 360.0, 300.0, 0.0),
+                          (0.0, 21.0, 145.0, 272.0, 32.0, 273.0),
+                          (42.0, 334.0, 79.0, 241.0, 305.0, 56.0))
+        else:
+            # Binded to degrees of movement and each degrees correspond to one degree of liberty
+            degreesOfFreedom = base.GetActuatorCount();
+
+            if (degreesOfFreedom.count == 6):
+                jointPoses = ((360.0, 35.6, 281.8, 0.8, 23.8, 88.9),
+                              (359.6, 49.1, 272.1, 0.3, 47.0, 89.1),
+                              (320.5, 76.5, 335.5, 293.4, 46.1, 165.6),
+                              (335.6, 38.8, 266.1, 323.9, 49.7, 117.3),
+                              (320.4, 76.5, 335.5, 293.4, 46.1, 165.6),
+                              (28.8, 36.7, 273.2, 40.8, 39.5, 59.8),
+                              (360.0, 45.6, 251.9, 352.2, 54.3, 101.0))
+            else:
+                jointPoses = ((360.0, 35.6, 180.7, 281.8, 0.8, 23.8, 88.9),
+                              (359.6, 49.1, 181.0, 272.1, 0.3, 47.0, 89.1),
+                              (320.5, 76.5, 166.5, 335.5, 293.4, 46.1, 165.6),
+                              (335.6, 38.8, 177.0, 266.1, 323.9, 49.7, 117.3),
+                              (320.4, 76.5, 166.5, 335.5, 293.4, 46.1, 165.6),
+                              (28.8, 36.7, 174.7, 273.2, 40.8, 39.5, 59.8),
+                              (360.0, 45.6, 171.0, 251.9, 352.2, 54.3, 101.0))
+
+    else:
+        print("Product is not compatible to run this example please contact support with KIN number bellow")
+        print("Product KIN is : " + product.kin())
+
+    waypoints = Base_pb2.WaypointList()
+    waypoints.duration = 0.0
+    waypoints.use_optimal_blending = False
+
+    index = 0
+    for jointPose in jointPoses:
+        waypoint = waypoints.waypoints.add()
+        waypoint.name = "waypoint_" + str(index)
+        durationFactor = 1
+        # Joints/motors 5 and 7 are slower and need more time
+        if (index == 4 or index == 6):
+            durationFactor = 6  # Min 30 seconds
+
+        waypoint.angular_waypoint.CopyFrom(populateAngularPose(jointPose, durationFactor))
+        index = index + 1
+
+        # Verify validity of waypoints
+    result = base.ValidateWaypointList(waypoints);
+    if (len(result.trajectory_error_report.trajectory_error_elements) == 0):
+
+        e = threading.Event()
+        notification_handle = base.OnNotificationActionTopic(
+            check_for_end_or_abort(e),
+            Base_pb2.NotificationOptions()
+        )
+
+        print("Reaching angular pose trajectory...")
+
+        base.ExecuteWaypointTrajectory(waypoints)
+
+        print("Waiting for trajectory to finish ...")
+        finished = e.wait(TIMEOUT_DURATION)
+        base.Unsubscribe(notification_handle)
+
+        if finished:
+            print("Angular movement completed")
+        else:
+            print("Timeout on action notification wait")
+        return finished
+    else:
+        print("Error found in trajectory")
+        print(result.trajectory_error_report)
+        return finished
 
 def traj_gen_config(q1, q2, qm, t, Tf):
     '''path plan configuration space'''
@@ -475,7 +405,7 @@ if __name__ == "__main__":
 
                 if str(key) == 'c' or 'C':
                     waypoints = []
-                    success &= example_trajectory_waypoints(base, waypoints)
+                    success &= example_trajectory_task(base, waypoints)
                     if success:
                         print('Successfully moved')
                         display = True
@@ -483,7 +413,7 @@ if __name__ == "__main__":
                         print('Huston, we have a problem, please call the instructor')
 
                 if str(key) == 'A' or 'a':
-                    success &= example_angular_action_movement(base)
+                    success &= example_trajectory_config(base, waypoints)
                     if success:
                         print('Successfully moved to arm to desired angular action')
                         display = True
@@ -491,21 +421,6 @@ if __name__ == "__main__":
                         print('Huston, we have a problem, please call the instructor')
 
 
-                # if str(key) == 'T' or 't':
-                #     success &= example_cartesian_trajectory_movement(base, base_cyclic)
-                #     if success:
-                #         print('Successfully moved to arm to desired angular action')
-                #         display = True
-                #     else:
-                #         print('Huston, we have a problem, please call the instructor')
-                #
-                # if str(key) == 'Y' or 'y':
-                #     success &= example_angular_trajectory_movement(base)
-                #     if success:
-                #         print('Successfully moved to arm to desired angular action')
-                #         display = True
-                #     else:
-                #         print('Huston, we have a problem, please call the instructor')
 
 
         if os.name != 'nt':
