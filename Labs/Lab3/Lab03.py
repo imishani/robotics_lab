@@ -378,6 +378,22 @@ def example_trajectory_waypoints(base, points):
         print("Error found in trajectory")
         result.trajectory_error_report.PrintDebugString();
 
+
+def traj_gen_config(q1, q2, qm, t, Tf):
+    '''path plan configuration space'''
+
+    a0 = q1
+    a1 = np.zeros((3,))
+    a4 = (qm - 0.5 * (q1 + q2)) / ((Tf / 2) ** 4)
+    a3 = (2 * (q1 - q2) / (Tf ** 3)) - 2 * Tf * a4
+    a2 = -1.5 * a3 * Tf - 2 * a4 * Tf ** 2
+
+    q = a0 + a1 * t + a2 * t ** 2 + a3 * t ** 3 + a4 * t ** 4
+    dq = a1 + 2 * a2 * t + 3 * a3 * t ** 2 + 4 * a4 * t ** 3
+    ddq = 2 * a2 + 6 * a3 * t + 12 * a4 * t ** 2
+
+    return q, dq, ddq
+
 def traj_gen_task(x_s, x_g, t, Tf):
 
     """
@@ -413,6 +429,8 @@ def traj_gen_task(x_s, x_g, t, Tf):
     # ddq = J_1 @ (ddx - (dJ @ dq).reshape((3,)))
 
     # return q.reshape((3,)), dq.reshape((3,)), ddq.reshape((3,))
+    return x, dx, ddx
+
 
 if __name__ == "__main__":
 
