@@ -51,12 +51,21 @@ def getKey():
     termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
     return key
 
-# Create closure to set an event after an END or an ABORT
-# Maximum allowed waiting time during actions (in seconds)
-TIMEOUT_DURATION = 20
+def all_close(goal, actual, tolerance):
+    """
+    Convenience method for testing if a list of values are within a tolerance of their counterparts in another list
+    @param: goal       A list of floats, a Pose or a PoseStamped
+    @param: actual     A list of floats, a Pose or a PoseStamped
+    @param: tolerance  A float
+    @returns: bool
+    """
+    if type(goal) is list:
+        for index in range(len(goal)):
+            if abs(actual[index] - goal[index]) > tolerance:
+                return False
 
+    return True
 
-# Create closure to set an event after an END or an ABORT
 def check_for_end_or_abort(e):
     """Return a closure checking for END or ABORT notifications
 
@@ -73,7 +82,6 @@ def check_for_end_or_abort(e):
             e.set()
 
     return check
-
 
 def example_angular_action_movement(base, base_cyclic, Q = None):
     print("Starting angular action movement ...\n Adding 10 deg to each motor")
@@ -117,7 +125,6 @@ def example_angular_action_movement(base, base_cyclic, Q = None):
     else:
         print("Timeout on action notification wait")
     return finished
-
 
 def example_cartesian_action_movement(base, base_cyclic, C = None):
     print("Starting Cartesian action movement ...")
@@ -209,7 +216,6 @@ def example_move_to_home_position(base):
         print("Timeout on action notification wait")
     return finished
 
-
 def example_angular_trajectory_movement(base):
     constrained_joint_angles = Base_pb2.ConstrainedJointAngles()
 
@@ -239,7 +245,6 @@ def example_angular_trajectory_movement(base):
     else:
         print("Timeout on action notification wait")
     return finished
-
 
 def example_cartesian_trajectory_movement(base, base_cyclic):
     constrained_pose = Base_pb2.ConstrainedPose()
@@ -286,12 +291,14 @@ def populateCartesianCoordinate(waypointInformation):
 
     return waypoint
 
-def example_trajectory(base, base_cyclic):
+def example_trajectory_waypoints(base, points):
+
     base_servo_mode = Base_pb2.ServoingModeInformation()
     base_servo_mode.servoing_mode = Base_pb2.SINGLE_LEVEL_SERVOING
     base.SetServoingMode(base_servo_mode)
     product = base.GetProductConfiguration()
     waypointsDefinition = tuple(tuple())
+
     if (product.model == Base_pb2.ProductConfiguration__pb2.MODEL_ID_L53
             or product.model == Base_pb2.ProductConfiguration__pb2.MODEL_ID_L31):
         if (product.model == Base_pb2.ProductConfiguration__pb2.MODEL_ID_L31):
@@ -371,7 +378,6 @@ def example_trajectory(base, base_cyclic):
         print("Error found in trajectory")
         result.trajectory_error_report.PrintDebugString();
 
-
 def traj_gen_task(x_s, x_g, t, Tf):
 
     """
@@ -436,8 +442,8 @@ if __name__ == "__main__":
 
                 if display:
                     key = input("Press H to move the arm  to home position\n"
-                          "Press C to move the arm to desired cartesian action\n"
-                          "Press A to move the arm to desired angular action\n"
+                          "Press C to follow a trajectory using Waypoint tracking\n"
+                          "Press A to follow a trajectory using single-step tracking\n"
                           "To Quit press Q")
                     display = False
 
@@ -450,9 +456,10 @@ if __name__ == "__main__":
                         print('Huston, we have a problem, please call the instructor')
 
                 if str(key) == 'c' or 'C':
-                    success &= example_cartesian_action_movement(base, base_cyclic)
+                    waypoints = []
+                    success &= example_trajectory_waypoints(base, waypoints)
                     if success:
-                        print('Successfully moved to arm to desired cartesian action')
+                        print('Successfully moved')
                         display = True
                     else:
                         print('Huston, we have a problem, please call the instructor')
@@ -465,7 +472,6 @@ if __name__ == "__main__":
                     else:
                         print('Huston, we have a problem, please call the instructor')
 
-                success &= example_trajectory(base, base_cyclic)
 
                 # if str(key) == 'T' or 't':
                 #     success &= example_cartesian_trajectory_movement(base, base_cyclic)
