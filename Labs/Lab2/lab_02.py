@@ -123,7 +123,7 @@ class robotic_arm():
         # X,Y,Z R,P,Y value for Target Position
         target = np.matrix(target)
         print(target.shape)
-        # Jacobian
+        # Init Jacobian
         self.jacobian_func()
         # T_0G = self.tf_matrices_list[-1]
 
