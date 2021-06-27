@@ -36,6 +36,7 @@ imgpoints = [] # 2d points in image plane.
 # iterating through all calibration images
 # in the folder
 images = glob.glob('calib_images/tests/*.jpg')
+counter = 0
 
 for fname in images:
     img = cv2.imread(fname)
@@ -88,6 +89,9 @@ while (True):
         # estimate pose of each marker and return the values
         # rvet and tvec-different from camera coefficients
         rvec, tvec ,_ = aruco.estimatePoseSingleMarkers(corners, 0.05, mtx, dist)
+        counter += 1
+        if counter % 500:
+            print('rvec is: {}, tvec is: {}'.format(rvec, tvec))
         #(rvec-tvec).any() # get rid of that nasty numpy value array error
 
         for i in range(0, ids.size):
