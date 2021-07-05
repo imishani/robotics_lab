@@ -4,7 +4,6 @@
 import numpy as np
 import sys
 from transformations import quaternion_matrix
-import tf
 import copy
 import modern_robotics
 import os

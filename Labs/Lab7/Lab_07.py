@@ -1,11 +1,15 @@
 #!/usr/bin/env python
 
 import sys
-\import numpy as np
+import numpy as np
 
 # from tf.transformations import *
-import tf
+# import tf
+import sys
+import os
+sys.path.insert(0, r'C:\Users\RobLab\Desktop\robotics_lab\robotics_lab\Labs\common\Aruco_Tracker-master') #os.path.join(os.path.dirname(__file__))
 
+from aruco_module import aruco_track
 from kinova import KinovaVS
 from visual_servoing import PBVS
 
