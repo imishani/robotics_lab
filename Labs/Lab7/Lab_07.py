@@ -22,7 +22,7 @@ if __name__ == '__main__':
         controller._translation_only = True
 
         # set target pose
-        try:
+        try: # TODO: add methods which extract TF from relative frame to desired
             tf_listener.waitForTransform('/desired_camera_frame', '/tag_0', rospy.Time(), rospy.Duration(4.0))
             (t_target, R_target) = tf_listener.lookupTransform('/desired_camera_frame', '/tag_0', rospy.Time(0))
         except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
