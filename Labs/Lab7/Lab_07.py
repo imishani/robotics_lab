@@ -9,19 +9,17 @@ import tf
 from kinova import KinovaVS
 from visual_servoing import PBVS
 
-\
+
 if __name__ == '__main__':
 
     try:
-        rospy.init_node('pbvs_eih')
 
-        r = rospy.Rate(15)
         tf_listener = tf.TransformListener()
 
-        limb = 'left'
-        baxter_vs = BaxterVS(limb, tf_listener)
+        limb = 'end_effector'
+        baxter_vs = KinovaVS(limb, tf_listener)
         controller = PBVS()
-        controller._translation_only = False
+        controller._translation_only = True
 
         # set target pose
         try:
