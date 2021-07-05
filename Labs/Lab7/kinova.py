@@ -32,12 +32,9 @@ class KinovaVS(object):
         self._tf_listener = tf_listener
 
         # h: hand, c: camera
-        try: # TODO: change to other method getting the desired transformation and rotation
-            self._tf_listener.waitForTransform('/' + self._limb + '_hand', '/' + self._limb + '_hand_camera',
-                                               rospy.Time(), rospy.Duration(4.0))
-            (self._t_hc, self._R_hc) = self._tf_listener.lookupTransform('/' + self._limb + '_hand',
-                                                                         '/' + self._limb + '_hand_camera',
-                                                                         rospy.Time(0))
+            # self._tf_listener.waitForTransform('/' + self._limb + '_hand', '/' + self._limb + '_hand_camera',
+            #                                    rospy.Time(), rospy.Duration(4.0))
+        self._t_hc, self._R_hc = np.array([0, 0, 0]), np.array([0, 0, 0, 0])
 
         self._R_hc = quaternion_matrix(self._R_hc)
 
