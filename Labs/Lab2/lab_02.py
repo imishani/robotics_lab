@@ -214,7 +214,7 @@ def move_to_angle_conf(Q):
                     print('Huston, we have a problem, please call the instructor')
 
             if str(key) == 'A' or 'a':
-                success &= example_angular_action_movement(base)
+                success &= example_angular_action_movement(base,Q)
                 if success:
                     print('Successfully moved to arm to desired angular action')
                     display = True
@@ -260,7 +260,7 @@ def move_to_gripper_conf(C):
                     print('Huston, we have a problem, please call the instructor')
 
             if str(key) == 'A' or 'a':
-                success &= example_cartesian_action_movement(base,C )
+                success &= example_cartesian_action_movement(base, C)
                 if success:
                     print('Successfully moved to arm to desired angular action')
                     display = True
