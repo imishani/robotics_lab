@@ -103,10 +103,9 @@ class PBVS(VisualServoing):
                 [nu_c, omg_c], 1x6
         '''
 
-        L = self._L(t_input, R_input)
-        error = self._calculate_error(t_input, R_input)
-
-        vel = -self._lambda * np.dot(np.linalg.pinv(L), error)
+        L = self._L(t_input, R_input)  # form interaction matrix / feature jacobian base on current camera pose
+        error = self._calculate_error(t_input, R_input)  # Caculate error based on the input pose and the target pose
+        vel = -self._lambda * np.dot(np.linalg.pinv(L), error)  # Set velocity
 
         # t_curr = np.array(t_input).flatten()
         # R_curr = tf.transformations.quaternion_matrix(R_input)[0:3, 0:3]
@@ -127,6 +126,7 @@ class PBVS(VisualServoing):
 
         return vel
 
+    # TODO: Different method CHECK!
     def _calculate_error2(self, t_input, R_input):
         '''
         Caculate error based on the input pose and the target pose
