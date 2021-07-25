@@ -106,3 +106,31 @@ class Dynamics():
 
     def Inertia(self):
         self.R12, self.R23, self.R34, self.R45, self.R56 = self.T12[:3, :3], self.T23[:3, :3], self.T34[:3, :3], self.T45[:3, :3], self.T56[:3, :3]
+        w101 = np.array([0,0,1]).T
+        w212 = np.array([0,0,1]).T
+        w323 = np.array([0,0,1]).T
+        w434 = np.array([0,0,1]).T
+        w545 = np.array([0,0,1]).T
+        w656 = np.array([0,0,1]).T
+
+        B1 = np.array([0.000025,0.022135,0.099377]).T
+        B2 = np.array([0.029983,0.21155,0.045303]).T
+        B3 = np.array([0.030156,0.095022,0.007356]).T
+        B4 = np.array([0.005752,0.010004,0.087192]).T
+        B5 = np.array([0.080565,0.009804,0.018728]).T
+        B6 = np.array([0.00993,0.00995,0.06136]).T
+        C11=np.array([0,-0.03,0.115])
+        C22=np.array([0,-0.28,0])
+        C33=np.array([0,-0.14,0.02])
+        C44=np.array([0.0285,0,0.105])
+        C55=np.array([-0.105,0,0.0285])
+
+        J1 = np.zeros(6)
+        J2 = np.zeros(6)
+        J3 = np.zeros(6)
+        J4 = np.zeros(6)
+        J5 = np.zeros(6)
+        J6 = np.zeros(6)
+
+        J1[0:2,0] = w101
+        J2[0:2,0] = self.R12.T*w101
