@@ -17,7 +17,7 @@ Communications Failed
 
 def getKey():
     if os.name == 'nt':
-        return msvcrt.getch()
+        return msvcrt.getche()
     tty.setraw(sys.stdin.fileno())
     rlist, _, _ = select.select([sys.stdin], [], [], 0.1)
     if rlist:

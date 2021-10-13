@@ -114,8 +114,8 @@ class robotic_arm():
         self.jacobian_mat = Matrix(BlockMatrix([[self.jacobian_mat], [temp]]))
 
     def inverse_kinematics(self, guess, target):
-        error = 10.0
-        tolerance = 10.0
+        error = 0.100
+        tolerance = 0.010
 
         # Initial Guess - Joint Angles
         Q = guess
@@ -140,7 +140,7 @@ class robotic_arm():
 
             T_q = np.matrix(self.forward_kinematics(Q)[-1])
 
-            delta_T = target - T_q
+            delta_T = target.T - T_q
 
             Q = Q + lr * (inv(np.matrix(self.jacobian_mat.evalf(subs=theta_dict, chop=True, maxn=10)).astype(
                 np.float64)) * delta_T).reshape(-1)
@@ -174,7 +174,7 @@ class robotic_arm():
         return Q_matrix
 
 
-def move_to_angle_conf(Q):
+def move_to_angle_conf(Q, base, base_cyclic):
 
 
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -182,150 +182,154 @@ def move_to_angle_conf(Q):
     from lab_01_single_action import example_move_to_home_position, example_cartesian_action_movement, example_angular_action_movement
     import utilities
 
-    # Parse arguments
-    args = utilities.parseConnectionArguments()
 
-    # Create connection to the device and get the router
-    with utilities.DeviceConnection.createTcpConnection(args) as router:
-        # Create required services
-        base = BaseClient(router)
-        base_cyclic = BaseCyclicClient(router)
 
-        input("Remove any objects near the arm and press Enter")
-        # Example core
-        success = True
-        flag = True
-        display = True
+    input("Remove any objects near the arm and press Enter")
+    # Example core
+    success = True
+    flag = True
+    display = True
 
-        while flag and success:
+    while flag and success:
 
-            if display:
-                key = input("Press H to move the arm  to home position\n"
-                      "Press A to move the arm to desired angular action: " + str(Q) + '\n'
-                      "To Quit press Q")
-                display = False
+        if display:
+            key = input("Press H to move the arm  to home position\n"
+                  "Press A to move the arm to desired angular action: " + str(Q) + '\n'
+                  "To Quit press Q")
+            display = False
 
-            if str(key) == 'h' or 'H':
-                success &= example_move_to_home_position(base)
-                if success:
-                    print('Successfully moved to home position')
-                    display = True
-                else:
-                    print('Huston, we have a problem, please call the instructor')
+        if str(key) == 'h' or 'H':
+            success &= example_move_to_home_position(base)
+            if success:
+                print('Successfully moved to home position')
+                display = True
+            else:
+                print('Huston, we have a problem, please call the instructor')
 
-            if str(key) == 'A' or 'a':
-                success &= example_angular_action_movement(base,Q)
-                if success:
-                    print('Successfully moved to arm to desired angular action')
-                    display = True
-                else:
-                    print('Huston, we have a problem, please call the instructor')
+        if str(key) == 'A' or 'a':
+            success &= example_angular_action_movement(base, base_cyclic, Q)
+            if success:
+                print('Successfully moved to arm to desired angular action')
+                display = True
+            else:
+                print('Huston, we have a problem, please call the instructor')
+        break
 
-def move_to_gripper_conf(C):
+def move_to_gripper_conf(C, base, base_cyclic):
 
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../Lab1/"))
     from lab_01_single_action import example_move_to_home_position, example_cartesian_action_movement, example_angular_action_movement
     import utilities
 
-    # Parse arguments
-    args = utilities.parseConnectionArguments()
+    input("Remove any objects near the arm and press Enter")
+    # Example core
+    success = True
+    flag = True
+    display = True
 
-    # Create connection to the device and get the router
-    with utilities.DeviceConnection.createTcpConnection(args) as router:
-        # Create required services
-        base = BaseClient(router)
-        base_cyclic = BaseCyclicClient(router)
+    while flag and success:
 
-        input("Remove any objects near the arm and press Enter")
-        # Example core
-        success = True
-        flag = True
-        display = True
+        if display:
+            key = input("Press H to move the arm  to home position\n"
+                  "Press A to move the arm to desired gripper conf: " + str(C) + '\n'
+                  "To Quit press Q")
+            display = False
 
-        while flag and success:
+        if str(key) == 'h' or str(key) == 'H':
+            success &= example_move_to_home_position(base)
+            if success:
+                print('Successfully moved to home position')
+                display = True
+            else:
+                print('Huston, we have a problem, please call the instructor')
 
-            if display:
-                key = input("Press H to move the arm  to home position\n"
-                      "Press A to move the arm to desired gripper conf: " + str(Q) + '\n'
-                      "To Quit press Q")
-                display = False
+        if str(key) == 'A' or str(key) == 'a':
+            success &= example_cartesian_action_movement(base, base_cyclic, C)
+            if success:
+                print('Successfully moved to arm to desired angular action')
+                display = True
 
-            if str(key) == 'h' or 'H':
-                success &= example_move_to_home_position(base)
-                if success:
-                    print('Successfully moved to home position')
-                    display = True
-                else:
-                    print('Huston, we have a problem, please call the instructor')
-
-            if str(key) == 'A' or 'a':
-                success &= example_cartesian_action_movement(base, C)
-                if success:
-                    print('Successfully moved to arm to desired angular action')
-                    display = True
-                else:
-                    print('Huston, we have a problem, please call the instructor')
+            else:
+                print('Huston, we have a problem, please call the instructor')
+        break
 
 if __name__ == '__main__':
+    ## Init Robot
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../Lab1/"))
+    from lab_01_single_action import example_move_to_home_position, example_cartesian_action_movement, example_angular_action_movement
+    import utilities
 
-    #######################
-    ###### Part 1 #########
-    #######################
+    # Parse arguments
+    args = utilities.parseConnectionArguments()
 
-    arm = robotic_arm()
-    arm.set_joints(6)
-    #               alpha a d r
-    alpha0, alpha1, alpha2, alpha3, alpha4, alpha5, alpha6 = symbols('alpha0:7')
-    a1, a2, a3, a4, a5, a6 = symbols('a1:7')
-    d1, d2, d3, d4, d5, d6 = symbols('d1:7')
-    q1, q2, q3, q4, q5, q6 = symbols('q1:7')
+    # Create connection to the device and get the router
+    with utilities.DeviceConnection.createTcpConnection(args) as router:
+        # Create required services
+        base = BaseClient(router)
+        base_cyclic = BaseCyclicClient(router)
 
-    dh_subs_dict = {alpha1: pi / 2, a1: 0, d1: 128.3 + 115.0, q1: q1,
-                 alpha2: pi, a2: 280, d2: 30, q2: q2 + pi / 2,
-                 alpha3: pi / 2, a3: 0, d3: 20, q3: q3 + pi / 2,
-                 alpha4: pi / 2, a4: 0, d4: 140.0 + 105.0, q4: q4 + pi / 2,
-                 alpha5: pi / 2, a5: 0, d5: 28.5 + 28.5, q5: q5 + pi,
-                 alpha6: 0, a6: 0, d6: 105.0 + 130.0, q6: q6 + pi / 2}
 
-    arm.set_dh_param_dict(dh_subs_dict)
+        #######################
+        ###### Part 1 #########
+        #######################
 
-    angle_conf_target_dict = {'t1': [0,0,0,0,0,0], # deg
-                              't2': [0,0,0,0,0,0],
-                              't3': [0,0,0,0,0,0],
-                              't4': [0,0,0,0,0,0],
-                              't5': [0,0,0,0,0,0]}
-    angle_conf_eval = {}
+        arm = robotic_arm()
+        arm.set_joints(6)
+        #               alpha a d r
+        alpha0, alpha1, alpha2, alpha3, alpha4, alpha5, alpha6 = symbols('alpha0:7')
+        a1, a2, a3, a4, a5, a6 = symbols('a1:7')
+        d1, d2, d3, d4, d5, d6 = symbols('d1:7')
+        q1, q2, q3, q4, q5, q6 = symbols('q1:7')
 
-    for i in range(len(angle_conf_target_dict)):
-        angle_conf_eval.update({'t'+ str(i + 1): arm.forward_kinematics(angle_conf_target_dict['t' + str(i + 1)])[-1]})
+        dh_subs_dict = {alpha1: pi / 2, a1: 0, d1: 0.1283 + 0.1150, q1: q1,
+                         alpha2: pi, a2: 0.280, d2: 0.030, q2: q2 + pi / 2,
+                         alpha3: pi / 2, a3: 0, d3: 0.020, q3: q3 + pi / 2,
+                         alpha4: pi / 2, a4: 0, d4: 0.1400 + 0.1050, q4: q4 + pi / 2,
+                         alpha5: pi / 2, a5: 0, d5: 0.0285 + 0.0285, q5: q5 + pi,
+                         alpha6: 0, a6: 0, d6: 0.1050 + 0.130, q6: q6 + pi / 2}
 
-    # Import arm modules and move to each configration
-    for i in range(len(angle_conf_eval)):
-        move_to_angle_conf(angle_conf_eval['t'+ str(i + 1)])
+        arm.set_dh_param_dict(dh_subs_dict)
 
-    #######################
-    ###### Part 2 #########
-    #######################
+        angle_conf_target_dict = {'t1': [0,0,0,0,0,0], # deg
+                                  't2': [90,0,0,45,45,45],
+                                  't3': [0,344,75,0,300,0],
+                                  't4': [7,21,150,285,340,270],
+                                  't5': [0,0,0,0,0,0]}
 
-    #                                  x   y   z    roll  pitch  yaw
-    gripper_conf_target_dict = {'t1': [57, -10, 1003.3, 0., 0.0, 1.],
-                                't2': [57, -10, 1003.3, 0., 0.0, 1.],
-                                't3': [57, -10, 1003.3, 0., 0.0, 1.],
-                                't4': [57, -10, 1003.3, 0., 0.0, 1.],
-                                't5': [57, -10, 1003.3, 0., 0.0, 1.]}
 
-    init_guess = [1.5, 1.5, 0., 0.,2.,0.]
-    gripper_conf_eval = {}
-    guess = init_guess
-    for i in range(len(gripper_conf_target_dict)):
-        target = gripper_conf_target_dict['t' + str(i + 1)]
-        Q = arm.inverse_kinematics(guess, target)
-        predicted_coordinates = arm.forward_kinematics(Q)[-1]
-        print('Target: {} ,  Predicted: {}'.format(target, Q))
-        gripper_conf_eval.update({'t' + str(i + 1): Q})
-        guess = Q
+        angle_conf_eval = {}
 
-    # Import arm modules and move to each configration
-    for i in range(len(angle_conf_eval)):
-        move_to_gripper_conf(gripper_conf_eval['t'+ str(i + 1)])
+        # for i in range(len(angle_conf_target_dict)):
+        #     angle_conf_eval.update({'t'+ str(i + 1): arm.forward_kinematics(angle_conf_target_dict['t' + str(i + 1)])[-1]})
+        #
+        # # Import arm modules and move to each configration
+        # for i in range(len(angle_conf_eval)):
+        #     move_to_gripper_conf(angle_conf_eval['t'+ str(i + 1)], base, base_cyclic)
+
+        #######################
+        ###### Part 2 #########
+        #######################
+
+        #                                  x   y   z    roll  pitch  yaw
+        gripper_conf_target_dict = {'t1': [0.057, -0.01, 1.0033, 0., 0.0, 0.],
+                                    't2': [-0.03017, 0.2087, 0.8917, -0.6500, -1.0529, -1.9830],
+                                    't3': [0.5233, 0.2249, 0.2814, -1.3889, 0.9066, 0.9269],
+                                    't4': [-0.3851, -0.1620, -0.3096, -1.5797, -1.8567, 0.8468],
+                                    't5': [0.057, -0.01, 1.0033, 0., 0.0, 0.]}
+
+        init_guess = [1.5, 1.5, 0., 0.,2.,0.]
+        gripper_conf_eval = {}
+        guess = init_guess
+        for i in range(len(gripper_conf_target_dict)):
+            target = gripper_conf_target_dict['t' + str(i + 1)]
+            Q = arm.inverse_kinematics(guess, target)
+            predicted_coordinates = arm.forward_kinematics(Q)[-1]
+            print('Target: {} ,  Predicted: {}'.format(target, Q))
+            gripper_conf_eval.update({'t' + str(i + 1): Q})
+            guess = Q
+
+        # Import arm modules and move to each configration
+        for i in range(len(angle_conf_eval)):
+            move_to_gripper_conf(gripper_conf_eval['t'+ str(i + 1)], base, base_cyclic)

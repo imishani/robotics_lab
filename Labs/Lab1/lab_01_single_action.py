@@ -30,7 +30,7 @@ import signal
 import sys
 import time
 import threading
-import keyboard
+# import keyboard
 
 # Maximum allowed waiting time during actions (in seconds)
 TIMEOUT_DURATION = 20
@@ -156,7 +156,7 @@ def example_angular_action_movement(base, base_cyclic, Q = None):
     return finished
 
 
-def example_cartesian_action_movement(base, base_cyclic, C = None):
+def example_cartesian_action_movement(base, base_cyclic, C=None):
     print("Starting Cartesian action movement ...")
 
     action = Base_pb2.Action()
@@ -164,14 +164,14 @@ def example_cartesian_action_movement(base, base_cyclic, C = None):
     action.application_data = ""
 
     feedback = base_cyclic.RefreshFeedback()
-    if C:
+    if np.array(C).any():
         cartesian_pose = action.reach_pose.target_pose
-        cartesian_pose.x = C[0]  # (meters)
-        cartesian_pose.y = C[1]  # (meters)
-        cartesian_pose.z = C[2]  # (meters)
-        cartesian_pose.theta_x = C[3]  # (degrees)
-        cartesian_pose.theta_y = C[4]  # (degrees)
-        cartesian_pose.theta_z = C[5]  # (degrees)
+        cartesian_pose.x = C[0][0]  # (meters)
+        cartesian_pose.y = C[1][0]  # (meters)
+        cartesian_pose.z = C[2][0]  # (meters)
+        cartesian_pose.theta_x = C[3][0]  # (degrees)
+        cartesian_pose.theta_y = C[4][0]  # (degrees)
+        cartesian_pose.theta_z = C[5][0]  # (degrees)
     else:
         ok = False
         while not ok:
