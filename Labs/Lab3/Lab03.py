@@ -30,7 +30,7 @@ import signal
 import sys
 import time
 import threading
-import keyboard
+# import keyboard
 
 # Maximum allowed waiting time during actions (in seconds)
 TIMEOUT_DURATION = 20
@@ -171,16 +171,33 @@ def example_trajectory_task(base, points):
         print("Product is not compatible to run this example please contact support with KIN number bellow")
         print("Product KIN is : " + product.kin())
 
+    x_g = waypointsDefinition[-1]
+    x_s = (base_cyclic.RefreshFeedback().base.tool_pose_x,
+           base_cyclic.RefreshFeedback().base.tool_pose_y,
+           base_cyclic.RefreshFeedback().base.tool_pose_z,
+           0.,
+           base_cyclic.RefreshFeedback().base.tool_pose_theta_x,
+           base_cyclic.RefreshFeedback().base.tool_pose_theta_y,
+           base_cyclic.RefreshFeedback().base.tool_pose_theta_z)
+
+    Tf = 3.
+    t = np.linspace(0, Tf, 5)
+    waypointsDef = [tuple(traj_gen_task(x_s, x_g, ti, Tf)[0]) for ti in t]
     waypoints = Base_pb2.WaypointList()
 
     waypoints.duration = 0.0
     waypoints.use_optimal_blending = False
 
     index = 0
-    for waypointDefinition in waypointsDefinition:
+    # for waypointDefinition in waypointsDefinition:
+    #     waypoint = waypoints.waypoints.add()
+    #     waypoint.name = "waypoint_" + str(index)
+    #     waypoint.cartesian_waypoint.CopyFrom(populateCartesianCoordinate(waypointDefinition))
+    #     index = index + 1
+    for waypointDef in waypointsDef:
         waypoint = waypoints.waypoints.add()
         waypoint.name = "waypoint_" + str(index)
-        waypoint.cartesian_waypoint.CopyFrom(populateCartesianCoordinate(waypointDefinition))
+        waypoint.cartesian_waypoint.CopyFrom(populateCartesianCoordinate(waypointDef))
         index = index + 1
 
         # Verify validity of waypoints
@@ -265,11 +282,31 @@ def example_trajectory_config(base, angles):
         print("Product is not compatible to run this example please contact support with KIN number bellow")
         print("Product KIN is : " + product.kin())
 
+    q_g = np.array(jointPoses[-1])
+    q_s = np.zeros(len(base_cyclic.RefreshFeedback().actuators))
+    for i in range(len(base_cyclic.RefreshFeedback().actuators)):
+        q_s[i] = base_cyclic.RefreshFeedback().actuators[i].position
+    Tf = 3.
+    t = np.linspace(0, Tf, 3)
+    jointP = [tuple(traj_gen_config(q_s, q_g, ti, Tf)[0]) for ti in t]
+
     waypoints = Base_pb2.WaypointList()
     waypoints.duration = 0.0
     waypoints.use_optimal_blending = False
 
     index = 0
+
+    # for jointPose in jointP:
+    #     waypoint = waypoints.waypoints.add()
+    #     waypoint.name = "waypoint_" + str(index)
+    #     durationFactor = 1
+    #     # Joints/motors 5 and 7 are slower and need more time
+    #     if (index == 4 or index == 6):
+    #         durationFactor = 6  # Min 30 seconds
+    #
+    #     waypoint.angular_waypoint.CopyFrom(populateAngularPose(jointPose, durationFactor))
+    #     index = index + 1
+
     for jointPose in jointPoses:
         waypoint = waypoints.waypoints.add()
         waypoint.name = "waypoint_" + str(index)
@@ -309,11 +346,11 @@ def example_trajectory_config(base, angles):
         print(result.trajectory_error_report)
         return finished
 
-def traj_gen_config(q1, q2, qm, t, Tf):
+def traj_gen_config(q1, q2, t, Tf):
     '''path plan configuration space'''
-
+    qm = q1 + (q2 - q1)/2
     a0 = q1
-    a1 = np.zeros((3,))
+    a1 = np.zeros((6,))
     a4 = (qm - 0.5 * (q1 + q2)) / ((Tf / 2) ** 4)
     a3 = (2 * (q1 - q2) / (Tf ** 3)) - 2 * Tf * a4
     a2 = -1.5 * a3 * Tf - 2 * a4 * Tf ** 2
@@ -331,11 +368,12 @@ def traj_gen_task(x_s, x_g, t, Tf):
     x_s = Start point cartesian
     x_g = goal point cartesian
     """
-
+    x_s = np.array(list(x_s))
+    x_g = np.array(list(x_g))
     # x_s = np.array(direct_kinematics(q1))   #start point
     # x_g = np.array(direct_kinematics(q2))   #goal point
-    a0 = np.zeros((3,))
-    a1 = np.zeros((3,))
+    a0 = 0. # np.zeros((3,))
+    a1 = 0. # np.zeros((3,))
     a2 = 3 / Tf ** 2
     a3 = -2 / Tf ** 3
     x = x_s + (a0 + a1 * t + a2 * t ** 2 + a3 * t ** 3) * (x_g - x_s)
@@ -393,9 +431,16 @@ if __name__ == "__main__":
                           "Press C to follow a trajectory using Waypoint tracking\n"
                           "Press A to follow a trajectory using single-step tracking\n"
                           "To Quit press Q")
+                    print(str(key))
                     display = False
 
-                if str(key) == 'h' or 'H':
+                if success:
+                    print('Successfully moved')
+                    display = True
+                else:
+                    print('Huston, we have a problem, please call the instructor')
+
+                if str(key) == 'h' or str(key) == 'H':
                     success &= example_move_to_home_position(base)
                     if success:
                         print('Successfully moved to home position')
@@ -403,7 +448,7 @@ if __name__ == "__main__":
                     else:
                         print('Huston, we have a problem, please call the instructor')
 
-                if str(key) == 'c' or 'C':
+                if str(key) == 'c' or str(key) == 'C':
                     waypoints = []
                     success &= example_trajectory_task(base, waypoints)
                     if success:
@@ -412,7 +457,8 @@ if __name__ == "__main__":
                     else:
                         print('Huston, we have a problem, please call the instructor')
 
-                if str(key) == 'A' or 'a':
+                if str(key) == 'a' or str(key) == 'A':
+                    waypoints = []
                     success &= example_trajectory_config(base, waypoints)
                     if success:
                         print('Successfully moved to arm to desired angular action')
