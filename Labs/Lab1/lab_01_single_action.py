@@ -132,7 +132,7 @@ def example_angular_action_movement(base, base_cyclic, Q = None):
             else:
                 print('Only less then 10 [deg] delta are valid.')
 
-        for joint_id in range(actuator_count):
+        for joint_id in range(actuator_count.count):
             joint_angle = action.reach_joint_angles.joint_angles.joint_angles.add()
             joint_angle.value = base_cyclic.RefreshFeedback().actuators[joint_id].position + dtheta
 
@@ -307,7 +307,7 @@ if __name__ == "__main__":
                           "To Quit press Q")
                     display = False
 
-                if str(key) == 'h' or 'H':
+                if str(key) == 'h' or str(key) == 'H':
                     success &= example_move_to_home_position(base)
                     if success:
                         print('Successfully moved to home position')
@@ -315,7 +315,7 @@ if __name__ == "__main__":
                     else:
                         print('Huston, we have a problem, please call the instructor')
 
-                if str(key) == 'c' or 'C':
+                if str(key) == 'c' or str(key) == 'C':
                     success &= example_cartesian_action_movement(base, base_cyclic)
                     if success:
                         print('Successfully moved to arm to desired cartesian action')
@@ -323,29 +323,13 @@ if __name__ == "__main__":
                     else:
                         print('Huston, we have a problem, please call the instructor')
 
-                if str(key) == 'A' or 'a':
-                    success &= example_angular_action_movement(base)
+                if str(key) == 'A' or str(key) == 'a':
+                    success &= example_angular_action_movement(base, base_cyclic)
                     if success:
                         print('Successfully moved to arm to desired angular action')
                         display = True
                     else:
                         print('Huston, we have a problem, please call the instructor')
-
-                # if str(key) == 'T' or 't':
-                #     success &= example_cartesian_trajectory_movement(base, base_cyclic)
-                #     if success:
-                #         print('Successfully moved to arm to desired angular action')
-                #         display = True
-                #     else:
-                #         print('Huston, we have a problem, please call the instructor')
-                #
-                # if str(key) == 'Y' or 'y':
-                #     success &= example_angular_trajectory_movement(base)
-                #     if success:
-                #         print('Successfully moved to arm to desired angular action')
-                #         display = True
-                #     else:
-                #         print('Huston, we have a problem, please call the instructor')
 
 
         if os.name != 'nt':

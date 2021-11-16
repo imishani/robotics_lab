@@ -12,11 +12,10 @@
 #
 ###
 import numpy as np
-import sys
-import os
 import time
 import threading
-
+import signal
+import subprocess
 import sys, select, os
 if os.name == 'nt':
   import msvcrt
@@ -26,11 +25,7 @@ else:
 from kortex_api.autogen.client_stubs.BaseClientRpc import BaseClient
 from kortex_api.autogen.client_stubs.BaseCyclicClientRpc import BaseCyclicClient
 from kortex_api.autogen.messages import Base_pb2, BaseCyclic_pb2, Common_pb2
-import signal
-import sys
-import time
-import threading
-# import keyboard
+
 
 # Maximum allowed waiting time during actions (in seconds)
 TIMEOUT_DURATION = 20
@@ -83,7 +78,37 @@ def check_for_end_or_abort(e):
 
     return check
 
-def example_move_to_home_position(base):
+def move_to_home_fixed(base):
+    Q = [10.0, 340.0, 75.0, 340.0, 300.0, 10.0]
+    action = Base_pb2.Action()
+    action.name = "Example angular action movement"
+    action.application_data = ""
+    actuator_count = base.GetActuatorCount()
+
+    for joint_id in range(actuator_count.count):
+        joint_angle = action.reach_joint_angles.joint_angles.joint_angles.add()
+        joint_angle.value = Q[joint_id]
+
+    e = threading.Event()
+    notification_handle = base.OnNotificationActionTopic(
+        check_for_end_or_abort(e),
+        Base_pb2.NotificationOptions()
+    )
+
+    print("Executing action")
+    base.ExecuteAction(action)
+
+    print("Waiting for movement to finish ...")
+    finished = e.wait(TIMEOUT_DURATION)
+    base.Unsubscribe(notification_handle)
+
+    if finished:
+        print("Angular movement completed")
+    else:
+        print("Timeout on action notification wait")
+    return finished
+
+def move_to_home_position(base):
     # Make sure the arm is in Single Level Servoing mode
     base_servo_mode = Base_pb2.ServoingModeInformation()
     base_servo_mode.servoing_mode = Base_pb2.SINGLE_LEVEL_SERVOING
@@ -139,7 +164,7 @@ def populateAngularPose(jointPose, durationFactor):
 
     return waypoint
 
-def example_trajectory_task(base, points):
+def trajectory_task(base, points):
 
     base_servo_mode = Base_pb2.ServoingModeInformation()
     base_servo_mode.servoing_mode = Base_pb2.SINGLE_LEVEL_SERVOING
@@ -208,15 +233,20 @@ def example_trajectory_task(base, points):
                                                              Base_pb2.NotificationOptions())
 
         print("Moving cartesian trajectory...")
+        cmd = 'start cmd /D /C "python recorder.py && pause"'
+        pro = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                               shell=True, stdin=subprocess.PIPE)
+        time.sleep(1)
+
 
         base.ExecuteWaypointTrajectory(waypoints)
-
         print("Waiting for trajectory to finish ...")
         finished = e.wait(TIMEOUT_DURATION)
         base.Unsubscribe(notification_handle)
 
         if finished:
             print("Cartesian trajectory with no optimization completed ")
+
             e_opt = threading.Event()
             notification_handle_opt = base.OnNotificationActionTopic(check_for_end_or_abort(e_opt),
                                                                      Base_pb2.NotificationOptions())
@@ -243,7 +273,7 @@ def example_trajectory_task(base, points):
         print("Error found in trajectory")
         result.trajectory_error_report.PrintDebugString();
 
-def example_trajectory_config(base, angles):
+def trajectory_config(base, angles):
     base_servo_mode = Base_pb2.ServoingModeInformation()
     base_servo_mode.servoing_mode = Base_pb2.SINGLE_LEVEL_SERVOING
     base.SetServoingMode(base_servo_mode)
@@ -286,6 +316,7 @@ def example_trajectory_config(base, angles):
     q_s = np.zeros(len(base_cyclic.RefreshFeedback().actuators))
     for i in range(len(base_cyclic.RefreshFeedback().actuators)):
         q_s[i] = base_cyclic.RefreshFeedback().actuators[i].position
+
     Tf = 3.
     t = np.linspace(0, Tf, 3)
     jointP = [tuple(traj_gen_config(q_s, q_g, ti, Tf)[0]) for ti in t]
@@ -296,18 +327,7 @@ def example_trajectory_config(base, angles):
 
     index = 0
 
-    # for jointPose in jointP:
-    #     waypoint = waypoints.waypoints.add()
-    #     waypoint.name = "waypoint_" + str(index)
-    #     durationFactor = 1
-    #     # Joints/motors 5 and 7 are slower and need more time
-    #     if (index == 4 or index == 6):
-    #         durationFactor = 6  # Min 30 seconds
-    #
-    #     waypoint.angular_waypoint.CopyFrom(populateAngularPose(jointPose, durationFactor))
-    #     index = index + 1
-
-    for jointPose in jointPoses:
+    for jointPose in jointP:
         waypoint = waypoints.waypoints.add()
         waypoint.name = "waypoint_" + str(index)
         durationFactor = 1
@@ -329,6 +349,10 @@ def example_trajectory_config(base, angles):
         )
 
         print("Reaching angular pose trajectory...")
+        cmd = 'start cmd /D /C "python recorder.py && pause"'
+        pro = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                               shell=True, stdin=subprocess.PIPE)
+        time.sleep(1.)
 
         base.ExecuteWaypointTrajectory(waypoints)
 
@@ -428,8 +452,8 @@ if __name__ == "__main__":
 
                 if display:
                     key = input("Press H to move the arm  to home position\n"
-                          "Press C to follow a trajectory using Waypoint tracking\n"
-                          "Press A to follow a trajectory using single-step tracking\n"
+                          "Press C to follow a trajectory on task-space\n"
+                          "Press A to follow a trajectory on configuration space\n"
                           "To Quit press Q")
                     print(str(key))
                     display = False
@@ -441,7 +465,7 @@ if __name__ == "__main__":
                     print('Huston, we have a problem, please call the instructor')
 
                 if str(key) == 'h' or str(key) == 'H':
-                    success &= example_move_to_home_position(base)
+                    success &= move_to_home_position(base)
                     if success:
                         print('Successfully moved to home position')
                         display = True
@@ -450,7 +474,7 @@ if __name__ == "__main__":
 
                 if str(key) == 'c' or str(key) == 'C':
                     waypoints = []
-                    success &= example_trajectory_task(base, waypoints)
+                    success &= trajectory_task(base, waypoints)
                     if success:
                         print('Successfully moved')
                         display = True
@@ -459,7 +483,8 @@ if __name__ == "__main__":
 
                 if str(key) == 'a' or str(key) == 'A':
                     waypoints = []
-                    success &= example_trajectory_config(base, waypoints)
+                    success &= move_to_home_fixed(base)
+                    success &= trajectory_config(base, waypoints)
                     if success:
                         print('Successfully moved to arm to desired angular action')
                         display = True
