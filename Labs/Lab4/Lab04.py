@@ -305,10 +305,12 @@ def static_load(base, base_cyclic):
     Kt_sum = np.zeros(len(base_cyclic.RefreshFeedback().actuators))
 
     ################# Part 1
-    ### Current-based torque estimation
-    ### tau = K_t*I -F
-    ### torque is proportinal to the current at each motor
-    ### For each of the motors, find Kt such as K_t = tau/I
+    """
+    Current-based torque estimation
+    tau = K_t*I - F
+    torque is proportinal to the current at each motor
+    For each of the motors, find Kt such as K_t = tau/I
+    """
     #################
     c = 0
     while(False):
@@ -336,9 +338,10 @@ def static_load(base, base_cyclic):
 
     #################
     ### Dynamic-Modeling
-    ### tau = M(q)q_ddot + C(q,q_dot)q_dot + g(q)
-    #################
-
+    """
+    tau = M(q)q_ddot + C(q,q_dot)q_dot + g(q)
+    """
+    ################
 
 
 

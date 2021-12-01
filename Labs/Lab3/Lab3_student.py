@@ -371,19 +371,14 @@ def trajectory_config(base, angles):
         return finished
 
 def traj_gen_config(q1, q2, t, Tf):
-    '''path plan configuration space'''
-    qm = q1 + (q2 - q1)/2
-    a0 = q1
-    a1 = np.zeros((6,))
-    a4 = (qm - 0.5 * (q1 + q2)) / ((Tf / 2) ** 4)
-    a3 = (2 * (q1 - q2) / (Tf ** 3)) - 2 * Tf * a4
-    a2 = -1.5 * a3 * Tf - 2 * a4 * Tf ** 2
-
-    q = a0 + a1 * t + a2 * t ** 2 + a3 * t ** 3 + a4 * t ** 4
-    dq = a1 + 2 * a2 * t + 3 * a3 * t ** 2 + 4 * a4 * t ** 3
-    ddq = 2 * a2 + 6 * a3 * t + 12 * a4 * t ** 2
-
-    return q, dq, ddq
+    '''
+    path plan configuration space
+    q1 = Start configuration
+    q2 = Goal configuration
+    t: vec
+    Tf: int
+    '''
+    pass
 
 def traj_gen_task(x_s, x_g, t, Tf):
 
@@ -391,18 +386,11 @@ def traj_gen_task(x_s, x_g, t, Tf):
     path plan in Task space
     x_s = Start point cartesian
     x_g = goal point cartesian
-    """
-    x_s = np.array(list(x_s))   #start point
-    x_g = np.array(list(x_g))   #goal point
-    a0 = 0. # np.zeros((3,))
-    a1 = 0. # np.zeros((3,))
-    a2 = 3 / Tf ** 2
-    a3 = -2 / Tf ** 3
-    x = x_s + (a0 + a1 * t + a2 * t ** 2 + a3 * t ** 3) * (x_g - x_s)
-    dx = (a1 + 2 * a2 * t + 3 * a3 * t ** 2) * (x_g - x_s)
-    ddx = (2 * a2 + 6 * a3 * t) * (x_g - x_s)
-
+    t: vec
+    Tf: int
     return x, dx, ddx
+    """
+    pass
 
 
 if __name__ == "__main__":

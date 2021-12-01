@@ -382,10 +382,10 @@ if __name__ == '__main__':
 
         for i in range(len(angle_conf_target_dict)):
             angle_conf_eval.update({'t'+ str(i + 1): arm.forward_kinematics(angle_conf_target_dict['t' + str(i + 1)])[-1]})
-        #
-        # # Import arm modules and move to each configration
-        # for i in range(len(angle_conf_eval)):
-        #     move_to_gripper_conf(angle_conf_eval['t'+ str(i + 1)], base, base_cyclic)
+
+        # Import arm modules and move to each configration
+        for i in range(len(angle_conf_eval)):
+            move_to_gripper_conf(angle_conf_eval['t'+ str(i + 1)], base, base_cyclic)
 
         #######################
         ###### Part 2 #########
