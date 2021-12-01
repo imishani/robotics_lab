@@ -68,9 +68,10 @@ class robotic_arm():
         self.tf_matrices_list.append(T_01 * T_12 * T_23 * T_34 * T_45)
         T_56 = self.TF_matrix(alpha6, a6, d6, q6).subs(self.dh_params)
         self.tf_matrices_list.append(T_01 * T_12 * T_23 * T_34 * T_45*T_56)
-        Tes = Matrix([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+        Tes = Matrix([[0, -1, 0, 0], [1, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
         T = T_01 * T_12 * T_23 * T_34 * T_45 * T_56 * Tes
-        # self.tf_matrices_list.append(T)
+        self.tf_matrices_list.append(T)
+
 
     def show_transform_matrices(self):
         print('Transform Matrices are: {}'.format(self.tf_matrices_list))
@@ -121,7 +122,7 @@ class robotic_arm():
         self.jacobian_mat = Matrix(self.jacobian_mat).T
         # to_jac = [list(A[:3, 2]) for A in self.tf_matrices_list]
         temp = Matrix([0, 0, 1])
-        for index in range(len(self.tf_matrices_list)-2):
+        for index in range(len(self.tf_matrices_list)-1):
             temp = temp.col_insert(index+1, self.tf_matrices_list[index][:3, 2]) #index+1
 
         self.jacobian_mat = Matrix(BlockMatrix([[self.jacobian_mat], [temp]]))
@@ -278,8 +279,7 @@ class robotic_arm():
         R2 = self.rotation(np.array([0,0,0.2433]).reshape(3,1), np.array([0,1,0]), -q123[1])
         R3 = self.rotation(np.array([0,0,0.5233]).reshape(3,1), np.array([0,1,0]), q123[2])
 
-        R = ((R1[0:3, 0:3] @ R2[0:3, 0:3]@R3[0:3, 0:3]).T ) @ T_q[0:3,0:3]
-            # np.array([[0, 1, 0], [-1, 0, 0], [0, 0, 1]])
+        R = ((R1[0:3, 0:3] @ R2[0:3, 0:3]@R3[0:3, 0:3]).T ) @ T_q[0:3,0:3] @ np.array([[0, 1, 0], [-1, 0, 0], [0, 0, 1]])
 
         q456 = self.R2ZXZ(R, solnumber)
 
@@ -288,8 +288,9 @@ class robotic_arm():
 
     def ik_RRR(self,Wdes,soltype):
         '''
-        Wdes(np.array) - first 3 dof cartesian translation ( x,y,z) (W in the figure)
-        soltype(str, length=2) - first letter r/l, second letter u/d
+        Wdes(np.array) - desired coordinates of W in the base reference frame of the robot
+        soltype(str, length=2) - first letter r/l, second letter u/d (‘rd’, ‘ru’, ‘ld’, ‘lu’),
+        return - necessary position on the first threejoints to reach it
         '''
         l1 = 0.2433
         d1 = 0.010
@@ -298,6 +299,7 @@ class robotic_arm():
 
         d = np.sqrt(Wdes[0] ** 2 + Wdes[1] ** 2 + (Wdes[2] - l1) ** 2 - d1 ** 2)
         alpha = np.arctan2(Wdes[2] - l1, np.sqrt(Wdes[0] ** 2 + Wdes[1] ** 2 - d1 ** 2))
+
         if soltype[0] == 'r':
             theta1 = np.arctan2(Wdes[1], Wdes[0]) + np.arcsin(d1 / np.sqrt(Wdes[1] ** 2 + Wdes[0] ** 2))
             if soltype[1] == 'd':
@@ -322,34 +324,29 @@ class robotic_arm():
 
         return np.array([theta1, theta2, theta3])
 
-    def wrapangles(self, ang):
-        if ang <= -np.pi:
-            return ang + np.pi*2
-        elif ang > np.pi:
-            return ang - np.pi*2
-        return ang
-
-    def rotation(self,Q, omega, theta):
+    def rotation(self, Q, omega, theta):
         # Q 3x1
         # omega 1x3
         # theta 1x1
         wx = self.skewm(omega)
         rotat = np.eye(3) + np.sin(theta) * wx + (1 - np.cos(theta)) * wx ** 2 # 3x3
-        A = np.concatenate((rotat, np.dot((eye(3) - rotat),Q).reshape(3,1)),axis = 1)
-        return np.vstack((A,np.array([0,0,0,1])))
+        A = np.concatenate((rotat, np.dot((eye(3) - rotat),Q).reshape(3,1)), axis = 1)
+        return np.vstack((A, np.array([0,0,0,1]))).astype(np.float64)
 
     def skewm(self,v):
-        return np.array([[0, - v[2], v[1]], [v[2], 0, - v[0]],[- v[1],v[0], 0]])
+        return np.array([[0, - v[2], v[1]], [v[2], 0, - v[0]],[- v[1], v[0], 0]])
 
     def R2ZXZ(self,R,solnumber):
+        # R - Rotation matrix
+        # return Euler angles
         if R[2, 2] == 1:
-            eul_angles= np.array([np.arctan2(R[1,0], R[1,1]), 0, 0])
+            eul_angles = np.array([np.arctan2(R[1,0], R[1,1]), 0, 0])
         else:
-            if solnumber: 
+            if solnumber:  # negative theta
                 eul_angles = np.array([np.arctan2(-R[0, 2], R[1, 2]),
                                        np.arctan2(-np.sqrt(R[0, 2]**2 + R[1, 2] ** 2), R[2,2]),
                                        np.arctan2(-R[2,0], -R[2, 1])])
-            else:
+            else: # positive theta
                 eul_angles = np.array([np.arctan2(R[0, 2], -R[1, 2]),
                                        np.arctan2(np.sqrt(R[0, 2] ** 2 + R[1, 2] ** 2), R[2, 2]),
                                        np.arctan2(R[2, 0], R[2, 1])])
@@ -372,13 +369,21 @@ class robotic_arm():
         Q_matrix = np.matrix(Q_list)
         return Q_matrix
 
+    def wrapangles(self, ang):
+        if ang <= -np.pi:
+            return ang + np.pi*2
+        elif ang > np.pi:
+            return ang - np.pi*2
+        return ang
 
 
 
 if __name__ == '__main__':
+
     ## Init Robot
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../Lab1/"))
+
     # from lab_01_single_action import example_move_to_home_position, example_cartesian_action_movement, example_angular_action_movement
     # import utilities
 
@@ -387,7 +392,7 @@ if __name__ == '__main__':
 
     # Create connection to the device and get the router
     # with utilities.DeviceConnection.createTcpConnection(args) as router:
-    if 1:
+    if True:
         # Create required services
         # base = BaseClient(router)
         # base_cyclic = BaseCyclicClient(router)
@@ -406,8 +411,8 @@ if __name__ == '__main__':
         q1, q2, q3, q4, q5, q6 = symbols('q1:7')
 
         dh_subs_dict = {alpha1: pi / 2, a1: 0, d1: 0.1283 + 0.1150, q1: q1,
-                         alpha2: pi, a2: 0.280, d2: 0.030, q2: q2 + pi / 2,
-                         alpha3: pi / 2, a3: 0, d3: 0.00, q3: q3 + pi / 2,
+                         alpha2: pi, a2: 0.280, d2: 0.03, q2: q2 + pi / 2,
+                         alpha3: pi / 2, a3: 0, d3: 0.02, q3: q3 + pi / 2,
                          alpha4: pi / 2, a4: 0, d4: 0.1400 + 0.1050, q4: q4 + pi / 2,
                          alpha5: pi / 2, a5: 0, d5: 0.0285 + 0.0285, q5: q5 + pi,
                          alpha6: 0, a6: 0, d6: 0.1050 + 0.130, q6: q6 + pi / 2}
@@ -415,9 +420,9 @@ if __name__ == '__main__':
         arm.set_dh_param_dict(dh_subs_dict)
 
 
-        q = np.deg2rad(np.array([60,10,20,60,0,60]))
+        q = np.deg2rad(np.array([50,60,70,10,20,30]))
         Tsd = arm.forward_hom_mat(q)
-        a = arm.inverse_kinematics_simplified(Tsd, 'ru', 1)
+        a = arm.inverse_kinematics_simplified(Tsd, 'lu', 1)
         arm.jacobian_calc(q)
 
         theta_dict = {}
@@ -429,9 +434,9 @@ if __name__ == '__main__':
         # J = np.array(arm.jacobian_mat.evalf(subs=theta_dict, chop=True, maxn=4))
         # print(J)
 
-        q0 = q + np.deg2rad(5)
-        qn = arm.inverse_kinematicsV2(q0, Tsd)
-        print(qn)
+        # q0 = q + np.deg2rad(5)
+        # qn = arm.inverse_kinematicsV2(q0, Tsd)
+        # print(qn)
 
         # 
         # print(q0)
