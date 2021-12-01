@@ -25,10 +25,11 @@ import time
 import threading
 
 import sys, select, os
+
 if os.name == 'nt':
-  import msvcrt
+    import msvcrt
 else:
-  import tty, termios
+    import tty, termios
 
 from kortex_api.autogen.client_stubs.BaseClientRpc import BaseClient
 from kortex_api.autogen.client_stubs.BaseCyclicClientRpc import BaseCyclicClient
@@ -37,13 +38,13 @@ import signal
 import sys
 import time
 import threading
-import keyboard
 
 # Maximum allowed waiting time during actions (in seconds)
 TIMEOUT_DURATION = 20
 e = """
 Communications Failed
 """
+
 
 def getKey():
     if os.name == 'nt':
@@ -57,6 +58,7 @@ def getKey():
 
     termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
     return key
+
 
 def all_close(goal, actual, tolerance):
     """
@@ -72,6 +74,7 @@ def all_close(goal, actual, tolerance):
                 return False
 
     return True
+
 
 def check_for_end_or_abort(e):
     """Return a closure checking for END or ABORT notifications
@@ -89,6 +92,7 @@ def check_for_end_or_abort(e):
             e.set()
 
     return check
+
 
 def example_move_to_home_position(base):
     # Make sure the arm is in Single Level Servoing mode
@@ -125,6 +129,7 @@ def example_move_to_home_position(base):
     else:
         print("Timeout on action notification wait")
     return finished
+
 
 class robotic_arm():
 
@@ -214,10 +219,19 @@ class robotic_arm():
         self.jacobian_mat = Matrix(self.jacobian_mat).T
         # to_jac = [list(A[:3, 2]) for A in self.tf_matrices_list]
         temp = Matrix([0, 0, 1])
-        for index in range(len(self.tf_matrices_list)-1):
+        for index in range(len(self.tf_matrices_list) - 1):
             temp = temp.col_insert(0, self.tf_matrices_list[index][:3, 2])
 
         self.jacobian_mat = Matrix(BlockMatrix([[self.jacobian_mat], [temp]]))
+
+    def forward_hom_mat(self, theta_list):
+        theta_dict = {}
+        T_0G = self.tf_matrices_list[-1]
+
+        for i in range(len(theta_list)):
+            theta_dict[self.q[i]] = theta_list[i]
+
+        return T_0G.evalf(subs=theta_dict, chop=True, maxn=4)
 
     def inverse_kinematics(self, guess, target):
         error = 10.0
@@ -270,7 +284,7 @@ class robotic_arm():
     def path_plan(self, guess, target_list):
         Q_list = []
         for i in range(len(target_list)):
-            target = target_list['t' + str( i + 1)]
+            target = target_list['t' + str(i + 1)]
             Q = self.inverse_kinematics(guess, target)
             predicted_coordinates = self.forward_kinematics(Q)
             print('Target: {} ,  Predicted: {}'.format(target, predicted_coordinates[-1]))
@@ -279,17 +293,53 @@ class robotic_arm():
         Q_matrix = np.matrix(Q_list)
         return Q_matrix
 
-def static_load( base, base_cyclic):
+
+def static_load(base, base_cyclic):
+
 
     theta_dict = {}
     cur_joint = np.zeros(len(base_cyclic.RefreshFeedback().actuators))
-    for i in range(len(base_cyclic.RefreshFeedback().actuators)):
-        cur_joint[i] = base_cyclic.RefreshFeedback().actuators[i].position
-        theta_dict.update({'q' + str(i + 1): cur_joint[i]})
+    cur_torque = np.zeros(len(base_cyclic.RefreshFeedback().actuators))
+    cur_current = np.zeros(len(base_cyclic.RefreshFeedback().actuators))
+    Kt = np.zeros(len(base_cyclic.RefreshFeedback().actuators))
+    Kt_sum = np.zeros(len(base_cyclic.RefreshFeedback().actuators))
+
+    ################# Part 1
+    ### Current-based torque estimation
+    ### tau = K_t*I -F
+    ### torque is proportinal to the current at each motor
+    ### For each of the motors, find Kt such as K_t = tau/I
+    #################
+    c = 0
+    while(False):
+        c += 1
+        for i in range(len(base_cyclic.RefreshFeedback().actuators)):
+            cur_joint[i] = base_cyclic.RefreshFeedback().actuators[i].position
+            theta_dict.update({'q' + str(i + 1): cur_joint[i]})
+            cur_torque[i] = base_cyclic.RefreshFeedback().actuators[i].torque
+            cur_current[i] = base_cyclic.RefreshFeedback().actuators[i].current_motor
+            Kt[i] = cur_torque[i]/cur_current[i]
+            Kt_sum[i] += Kt[i]
+            # print("Kt " + str(i+1) + " : " + str(Kt[i]))
+
+        print("Kt: " + str(Kt_sum/c))
+
+    #################
+    ### External-force Torque estimation
+    ### tau = -J.T * F
+    #################
 
     J = np.matrix(arm.jacobian_mat.evalf(subs=theta_dict, chop=True, maxn=10)).astype(np.float64)
-    F = np.array([0.0 , 0.0])
-    tau = -J.T.dot(F)
+    F = np.array([0.0, 0.0])    # Todo: get F by external force sensor
+    tau = -J.T.dot(F)  # estimated
+    error = tau - cur_torque
+
+    #################
+    ### Dynamic-Modeling
+    ### tau = M(q)q_ddot + C(q,q_dot)q_dot + g(q)
+    #################
+
+
 
 
 if __name__ == "__main__":
@@ -339,12 +389,12 @@ if __name__ == "__main__":
 
                 if display:
                     key = input("Press H to move the arm  to home position\n"
-                          "Press C to follow a start static loading experiment\n"
-                          "Press A do somthing\n"
-                          "To Quit press Q")
+                                "Press C to follow a start static loading experiment\n"
+                                "Press A do somthing\n"
+                                "To Quit press Q")
                     display = False
 
-                if str(key) == 'h' or 'H':
+                if str(key) == 'h' or str(key) == 'H':
                     success &= example_move_to_home_position(base)
                     if success:
                         print('Successfully moved to home position')
@@ -352,7 +402,7 @@ if __name__ == "__main__":
                     else:
                         print('Huston, we have a problem, please call the instructor')
 
-                if str(key) == 'c' or 'C':
+                if str(key) == 'c' or str(key) == 'C':
 
                     success &= static_load(base, base_cyclic)
                     if success:
@@ -361,18 +411,16 @@ if __name__ == "__main__":
                     else:
                         print('Huston, we have a problem, please call the instructor')
 
-                if str(key) == 'A' or 'a':
-                    success &= example_trajectory_config(base, waypoints)
+                if str(key) == 'A' or str(key) == 'a':
+                    success &= TOEDIT(base, waypoints)
                     if success:
                         print('Successfully moved to arm to desired angular action')
                         display = True
                     else:
                         print('Huston, we have a problem, please call the instructor')
 
-
         if os.name != 'nt':
             termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
 
     except KeyboardInterrupt:
         pass
-
