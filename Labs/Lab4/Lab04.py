@@ -315,15 +315,6 @@ def static_load(base, base_cyclic):
     c = 0
     while(False):
         c += 1
-        for i in range(len(base_cyclic.RefreshFeedback().actuators)):
-            cur_joint[i] = base_cyclic.RefreshFeedback().actuators[i].position
-            theta_dict.update({'q' + str(i + 1): cur_joint[i]})
-            cur_torque[i] = base_cyclic.RefreshFeedback().actuators[i].torque
-            cur_current[i] = base_cyclic.RefreshFeedback().actuators[i].current_motor
-            Kt[i] = cur_torque[i]/cur_current[i]
-            Kt_sum[i] += Kt[i]
-            # print("Kt " + str(i+1) + " : " + str(Kt[i]))
-
         print("Kt: " + str(Kt_sum/c))
 
     #################
