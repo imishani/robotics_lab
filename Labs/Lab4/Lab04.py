@@ -296,6 +296,49 @@ class robotic_arm():
 
 def static_load(base, base_cyclic):
 
+    path = 'trajectory.csv'
+    M = np.genfromtxt(path, delimiter=',')
+    N = M.shape[0]
+    couple = np.zeros((N, 6))
+    q = M[:, 1:7]
+    qp = M[:, 7:13]
+    qpp = M[:, 13:19]
+    t = M[:, 0]
+
+    # for i in range(N):
+    #     q = M[i, 1:7]
+    #     qp = M[i, 7:13]
+    #     qpp = M[i, 13:19]
+    #     # couple[i, 0:6] = dyn.precomputed_torque(q, qp, qpp).T
+
+    itamar = Base_pb2.PreComputedJointTrajectory()
+    for j in range(q.shape[0]):
+        elem = itamar.trajectory_elements.add()
+        # for i in range(len(base_cyclic.RefreshFeedback().actuators)):
+        #     elem.joint_angles.append(base_cyclic.RefreshFeedback().actuators[i].position)
+        #     elem.joint_speeds.append(0.)
+        #     elem.joint_accelerations.append(0.)
+        for i in range(q[j, :].shape[0]):
+            elem.joint_angles.append(q[j, i])
+            elem.joint_speeds.append(qp[j, i])
+            elem.joint_accelerations.append(qpp[j, i])
+
+    # itamar = Base_pb2.PreComputedJointTrajectory()
+    # for j in range(q.shape[0]):
+    #     elem = itamar.trajectory_elements.add()
+    #     for i in range(q[j, :].shape[0]):
+    #         elem.joint_angles.append(q[j, i])
+    #         elem.joint_speeds.append(qp[j, i])
+    #         elem.joint_accelerations.append(qpp[j, i])
+
+    # itamar = Base_pb2.PreComputedJointTrajectory()
+    # for j in range(q.shape[0]):
+    #     elem = itamar.trajectory_elements.add()
+    #     elem.joint_angles.extend(q[j, :])
+    #     elem.joint_speeds.extend(qp[j, :])
+    #     elem.joint_accelerations.extend(qpp[j, :])
+
+    base.PlayPreComputedJointTrajectory(itamar)
 
     theta_dict = {}
     cur_joint = np.zeros(len(base_cyclic.RefreshFeedback().actuators))
@@ -337,6 +380,7 @@ def static_load(base, base_cyclic):
 
 
 if __name__ == "__main__":
+
 
     if os.name != 'nt':
         settings = termios.tcgetattr(sys.stdin)
