@@ -44,6 +44,7 @@ class Dynamics():
         self.I1, self.I2, self.I3, self.I4, self.I5, self.I6 = I1, I2, I3, I4, I5, I6
 
     def forward(self, q):
+        q = np.deg2rad(q)
         self.T01 = np.array([[np.cos(q[0]), -np.sin(q[0]), 0, 0],
                [np.sin(q[0]), np.cos(q[0]), 0, 0],
                [0, 0, 1, 0.1283],
@@ -198,6 +199,8 @@ class Dynamics():
         return self.J1.T@self.I1@self.J1+self.J2.T@self.I2@self.J2+self.J3.T@self.I3@self.J3+self.J4.T@self.I4@self.J4+self.J5.T@self.I5@self.J5+self.J6.T@self.I6@self.J6
 
     def coriolis(self, q, qp):
+
+        self.forward(q)
 
         self.R12d2, self.R23d3, self.R34d4, self.R45d5, self.R56d6 = self.T12d2[:3, :3],\
                                                            self.T23d3[:3, :3],\
@@ -396,8 +399,8 @@ class Dynamics():
 
     def precomputed_torque(self, q, qp, qpp):
 
-        couple = self.inertia(q) @ qpp.T+ self.coriolis(q,qp) @ qp.T + self.gravity(q)
-
+        couple = self.inertia(q) @ qpp.T + self.coriolis(q,qp) @ qp.T + self.gravity(q)
+        # print(max(self.inertia(q) @ qpp.T), max(self.coriolis(q,qp) @ qp.T), max(self.gravity(q)))
         return couple
 
 
@@ -414,6 +417,7 @@ if __name__ == "__main__":
         qp = M[i,7:13]
         qpp = M[i,13:19]
         couple[i,0:6] = dyn.precomputed_torque(q,qp,qpp).T
+        # print(i,couple[i,0:6])
 
     import matplotlib.pyplot as plt
 

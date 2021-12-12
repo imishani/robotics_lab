@@ -131,6 +131,43 @@ def example_move_to_home_position(base):
     return finished
 
 
+def move_to_zero_position(base):
+    # Make sure the arm is in Single Level Servoing mode
+    base_servo_mode = Base_pb2.ServoingModeInformation()
+    base_servo_mode.servoing_mode = Base_pb2.SINGLE_LEVEL_SERVOING
+    base.SetServoingMode(base_servo_mode)
+
+    # Move arm to ready position
+    print("Moving the arm to a safe position")
+    action_type = Base_pb2.RequestedActionType()
+    action_type.action_type = Base_pb2.REACH_JOINT_ANGLES
+    action_list = base.ReadAllActions(action_type)
+    action_handle = None
+    for action in action_list.action_list:
+        if action.name == "Zero":
+            action_handle = action.handle
+
+    if action_handle == None:
+        print("Can't reach safe position. Exiting")
+        return False
+
+    e = threading.Event()
+    notification_handle = base.OnNotificationActionTopic(
+        check_for_end_or_abort(e),
+        Base_pb2.NotificationOptions()
+    )
+
+    base.ExecuteActionFromReference(action_handle)
+    finished = e.wait(TIMEOUT_DURATION)
+    base.Unsubscribe(notification_handle)
+
+    if finished:
+        print("Safe position reached")
+    else:
+        print("Timeout on action notification wait")
+    return finished
+
+
 class robotic_arm():
 
     def __init__(self):
@@ -295,7 +332,11 @@ class robotic_arm():
 
 
 def static_load(base, base_cyclic):
-
+    success = True
+    try:
+        success &= move_to_zero_position(base)
+    except:
+        print('Could not reach zero position')
     path = 'trajectory.csv'
     M = np.genfromtxt(path, delimiter=',')
     N = M.shape[0]
@@ -311,35 +352,21 @@ def static_load(base, base_cyclic):
     #     qpp = M[i, 13:19]
     #     # couple[i, 0:6] = dyn.precomputed_torque(q, qp, qpp).T
 
+    recorded_torques = np.array([[base_cyclic.RefreshFeedback().actuators[i].torque
+                                  for i in range(len(base_cyclic.RefreshFeedback().actuators))]])
     itamar = Base_pb2.PreComputedJointTrajectory()
     for j in range(q.shape[0]):
         elem = itamar.trajectory_elements.add()
-        # for i in range(len(base_cyclic.RefreshFeedback().actuators)):
-        #     elem.joint_angles.append(base_cyclic.RefreshFeedback().actuators[i].position)
-        #     elem.joint_speeds.append(0.)
-        #     elem.joint_accelerations.append(0.)
-        for i in range(q[j, :].shape[0]):
-            elem.joint_angles.append(q[j, i])
-            elem.joint_speeds.append(qp[j, i])
-            elem.joint_accelerations.append(qpp[j, i])
-
-    # itamar = Base_pb2.PreComputedJointTrajectory()
-    # for j in range(q.shape[0]):
-    #     elem = itamar.trajectory_elements.add()
-    #     for i in range(q[j, :].shape[0]):
-    #         elem.joint_angles.append(q[j, i])
-    #         elem.joint_speeds.append(qp[j, i])
-    #         elem.joint_accelerations.append(qpp[j, i])
-
-    # itamar = Base_pb2.PreComputedJointTrajectory()
-    # for j in range(q.shape[0]):
-    #     elem = itamar.trajectory_elements.add()
-    #     elem.joint_angles.extend(q[j, :])
-    #     elem.joint_speeds.extend(qp[j, :])
-    #     elem.joint_accelerations.extend(qpp[j, :])
-
+        elem.time_from_start = t[j]
+        elem.joint_angles.extend(q[j, :].T)
+        elem.joint_speeds.extend(qp[j, :].T)
+        elem.joint_accelerations.extend(qpp[j, :].T)
+    time_ = time.time()
     base.PlayPreComputedJointTrajectory(itamar)
 
+    while time.time() - time_ < (t[-1] + 2):
+        recorded_torques = np.vstack((recorded_torques, np.array([base_cyclic.RefreshFeedback().actuators[i].torque
+                                  for i in range(len(base_cyclic.RefreshFeedback().actuators))])))
     theta_dict = {}
     cur_joint = np.zeros(len(base_cyclic.RefreshFeedback().actuators))
     cur_torque = np.zeros(len(base_cyclic.RefreshFeedback().actuators))
@@ -347,7 +374,7 @@ def static_load(base, base_cyclic):
     Kt = np.zeros(len(base_cyclic.RefreshFeedback().actuators))
     Kt_sum = np.zeros(len(base_cyclic.RefreshFeedback().actuators))
 
-    ################# Part 1
+    ################# Part  1
     """
     Current-based torque estimation
     tau = K_t*I - F
