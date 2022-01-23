@@ -60,7 +60,7 @@ def save():
     global joint_trajectory
     logdir_prefix = 'lab-01'
 
-    data_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../data')
+    data_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Lab1/data')
 
     if not (os.path.exists(data_path)):
         os.makedirs(data_path)
@@ -112,7 +112,7 @@ if __name__ == "__main__":
             except:
                 print(e)
             finally:
-                print('done')
+                print('\n done')
 
         if os.name != 'nt':
             termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
