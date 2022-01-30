@@ -31,7 +31,7 @@ class KinovaVS(object):
 
     def __init__(self):
 
-        self._t_hc, self._R_hc = np.array([0, 0, 0]), np.array([0, 0, 0, 0])
+        self._t_hc, self._R_hc = np.array([0, 0, 0]), np.array([0, 0, 0, 0]) # TODO: EDIT!
 
         self._R_hc = quaternion_matrix(self._R_hc)
 
@@ -43,10 +43,10 @@ class KinovaVS(object):
         self._T_bh = np.zeros((4, 4))
         self._Ad_bh = np.zeros((6, 6))
 
+        # setup connection with the kinova
         if os.name != 'nt':
             settings = termios.tcgetattr(sys.stdin)
         try:
-            # base_cyclic = main()
             sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
             import utilities
 
@@ -68,6 +68,7 @@ class KinovaVS(object):
         '''
 
         try:
+            # get the transform from hand to body
             feedback = self.base_cyclic.RefreshFeedback()
 
             t = [feedback.base.tool_pose_x,
@@ -76,7 +77,7 @@ class KinovaVS(object):
 
             R = Rotation.from_euler('zyx', [feedback.base.tool_pose_theta_z,
                                             feedback.base.tool_pose_theta_y,
-                                            feedback.base.tool_pose_theta_z], degrees=True)
+                                            feedback.base.tool_pose_theta_x], degrees=True)
         except :
             print('Warning! Cant get transformation from gripper to base.')
 
@@ -97,6 +98,11 @@ class KinovaVS(object):
         self.update_hand_to_body_transforms()
 
         v_c = np.concatenate((v_c[3:6], v_c[0:3]))
+
+        """
+        Get the transformation between the camera to the base, np.dot(self._Ad_bh, self._Ad_hc) 
+                                                                       hand2body, cam2hand
+        """
 
         v_b = np.dot(self._Ad_bh, np.dot(self._Ad_hc, v_c))
 
@@ -141,14 +147,14 @@ class KinovaVS(object):
         print("Sending the twist command for 5 seconds...")
         self.base.SendTwistCommand(command)
 
-        # Let time for twist to be executed
-        time.sleep(5)
-
-        print("Stopping the robot...")
-        self.base.Stop()
-        time.sleep(1)
-
-        return True
+        # # Let time for twist to be executed
+        time.sleep(0.1)
+        #
+        # print("Stopping the robot...")
+        # self.base.Stop()
+        # time.sleep(1)
+        #
+        # return True
 
     def example_send_joint_speeds(self):
 
