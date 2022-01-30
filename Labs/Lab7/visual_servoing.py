@@ -11,6 +11,9 @@ class VisualServoing(object):
         self._lambda = 0.5
         self._target_features_set = False
 
+'''
+https://hal.inria.fr/inria-00350283/document
+'''
 
 class PBVS(VisualServoing):
     def __init__(self):
@@ -34,6 +37,39 @@ class PBVS(VisualServoing):
         print("t:{}".format(self._target_feature_t))
         print("R:{}".format(self._target_feature_R))
 
+    def caculate_vel(self, t_input, R_input):
+        '''
+        calculate the twist of camera frame required to reach target pose
+        Input:  (object in current camera frame)
+                t_input, 1x3 vector
+                R_input, 1x4 vector, quaternion
+        Output: Twist in camera frame
+                [nu_c, omg_c], 1x6
+        '''
+
+        L = self._L(t_input, R_input)  # form interaction matrix / feature jacobian base on current camera pose
+        error = self._calculate_error(t_input, R_input)  # Calculate error based on the input pose and the target pose
+        vel = -self._lambda * np.dot(np.linalg.pinv(L), error)  # Set velocity
+
+        # t_curr = np.array(t_input).flatten()
+        # R_curr = tf.transformations.quaternion_matrix(R_input)[0:3, 0:3]
+
+        # R_del = np.dot(self._target_feature_R, R_curr.T)
+        # R_del_homo = np.vstack((np.hstack((R_del, np.zeros((3,1)))), np.array([0, 0, 0, 1])))
+
+        # (theta, u, _)= tf.transformations.rotation_from_matrix(R_del_homo)
+
+        # skew_symmetric = modern_robotics.VecToso3
+
+        # vel_trans = -self._lambda * ((self._target_feature_t - t_curr) + np.dot(skew_symmetric(t_curr), theta*u))
+        # vel_rot = -self._lambda * theta * u
+
+        # vel = np.concatenate((vel_rot, vel_trans))
+
+        # print "Camera Twist:{:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}".format(vel[0], vel[1], vel[2], vel[3], vel[4], vel[5])
+
+        return vel
+
     def _calculate_error(self, t_input, R_input):
         '''
         Caculate error based on the input pose and the target pose
@@ -51,7 +87,7 @@ class PBVS(VisualServoing):
         t_del = t_curr - self._target_feature_t
         R_del = np.dot(self._target_feature_R, R_curr.T)
         R_del_homo = np.vstack((np.hstack((R_del, np.zeros((3, 1)))), np.array([0, 0, 0, 1])))
-        (theta, u, _) = transformations.rotation_from_matrix(R_del_homo)
+        (theta, u, _) = transformations.rotation_from_matrix(R_del_homo) # Return rotation angle and axis from rotation matrix. (angle, direc, point)
 
         if self._translation_only:
             error = np.hstack((t_del, np.zeros(3)))
@@ -80,8 +116,9 @@ class PBVS(VisualServoing):
         (theta, u, _) = transformations.rotation_from_matrix(R_del_homo)
 
         skew_symmetric = modern_robotics.VecToso3
-
+        # [0, -t_curr[2], t_curr[1]; t_curr[2], 0, -t_curr[0]; -t_curr[1], t_curr[0], 0]
         skew_t = skew_symmetric(t_curr)
+
         L_theta_u = np.identity(3) - (theta / 2) * np.array(skew_symmetric(u)) + (
                     1 - (np.sinc(theta) / ((np.sinc(theta / 2)) ** 2))) * np.dot(np.array(skew_symmetric(u)),
                                                                                  np.array(skew_symmetric(u)))
@@ -93,40 +130,20 @@ class PBVS(VisualServoing):
 
         return L_out
 
-    def caculate_vel(self, t_input, R_input):
+    # TODO: Different method CHECK!
+
+    def caculate_vel2(self, t_input, R_input):
         '''
-        calculate the twist of camera frame required to reach target pose
+        calculate the velocity required to reach target pose
         Input:  (object in current camera frame)
                 t_input, 1x3 vector
                 R_input, 1x4 vector, quaternion
-        Output: Twist in camera frame
-                [nu_c, omg_c], 1x6
         '''
 
-        L = self._L(t_input, R_input)  # form interaction matrix / feature jacobian base on current camera pose
-        error = self._calculate_error(t_input, R_input)  # Caculate error based on the input pose and the target pose
-        vel = -self._lambda * np.dot(np.linalg.pinv(L), error)  # Set velocity
+        # L = self._L2(t_input, R_input)
 
-        # t_curr = np.array(t_input).flatten()
-        # R_curr = tf.transformations.quaternion_matrix(R_input)[0:3, 0:3]
+        # error = 0
 
-        # R_del = np.dot(self._target_feature_R, R_curr.T)
-        # R_del_homo = np.vstack((np.hstack((R_del, np.zeros((3,1)))), np.array([0, 0, 0, 1])))
-
-        # (theta, u, _)= tf.transformations.rotation_from_matrix(R_del_homo)
-
-        # skew_symmetric = modern_robotics.VecToso3
-
-        # vel_trans = -self._lambda * ((self._target_feature_t - t_curr) + np.dot(skew_symmetric(t_curr), theta*u))
-        # vel_rot = -self._lambda * theta * u
-
-        # vel = np.concatenate((vel_rot, vel_trans))
-
-        # print "Camera Twist:{:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}".format(vel[0], vel[1], vel[2], vel[3], vel[4], vel[5])
-
-        return vel
-
-    # TODO: Different method CHECK!
     def _calculate_error2(self, t_input, R_input):
         '''
         Caculate error based on the input pose and the target pose
@@ -183,15 +200,3 @@ class PBVS(VisualServoing):
         L_out = np.vstack((L_top, L_bottom))
 
         return L_out
-
-    def caculate_vel2(self, t_input, R_input):
-        '''
-        calculate the velocity required to reach target pose
-        Input:  (object in current camera frame)
-                t_input, 1x3 vector
-                R_input, 1x4 vector, quaternion
-        '''
-
-        # L = self._L2(t_input, R_input)
-
-        # error = 0
