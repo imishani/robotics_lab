@@ -22,18 +22,20 @@ if __name__ == '__main__':
         controller._translation_only = True
         tracker = aruco_track()
         # set target pose
-        try: # TODO: we need to add a method to set the target frame, i.e move the robot at
-             # TODO: the beginning and then home the robot
-            track_transform = input('Press Enter to calibrate current position as reference frame:')
+
+        try:
+            """ Capture target frame
+                Set the desired transform we want to achive from the marker"""
+            track_transform = input('Press Enter to the target frame ([tag_0])\n')
             t_target, R_target = tracker.track()
         except:
             print('Error! Cannot find [tag_0] to [desired_camera_frame] transform')
             sys.exit(0)
 
         controller.set_target_feature(t_target, R_target)
-
         # set up the kinova
-        while (True):
+
+        while (True):  # TODO: add safety conditon
             # get pose estimation from tracker node
             try:
                 t_curr, R_curr = tracker.track()
@@ -47,6 +49,10 @@ if __name__ == '__main__':
             vel_body = kinova_vs.body_frame_twist(vel_cam)
 
             kinova_vs.set_joint_vel(vel_body)
+
+            if np.linalg.norm(vel_body) < 3:
+                print("Stopping the robot")
+                kinova_vs.base.Stop()
 
     except KeyboardInterrupt:
         pass
