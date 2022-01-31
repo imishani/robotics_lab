@@ -93,14 +93,14 @@ def example_move_to_home_position(base):
     return finished
 
 
-def example_angular_action_movement(base, base_cyclic, Q = None):
-    print("Starting angular action movement ...\n Adding 10 deg to each motor")
+def example_angular_action_movement(base, base_cyclic, Q=None):
+    print("Starting angular action movement ...")
     action = Base_pb2.Action()
     action.name = "Example angular action movement"
     action.application_data = ""
     ok = False
-    actuator_count = base.GetActuatorCount()
-    if Q:
+    actuator_count = base.GetActuatorCount().count
+    if Q is not None:
         for joint_id in range(actuator_count):
             joint_angle = action.reach_joint_angles.joint_angles.joint_angles.add()
             joint_angle.value = Q[joint_id]

@@ -1,16 +1,6 @@
-import numpy as np
 from sympy import *
-from numpy import linalg as LA
-from numpy.linalg import inv
-import time
-import logging
-import mpl_toolkits.mplot3d.axes3d as p3
-import matplotlib.pyplot as plt
-from matplotlib import animation
-from scipy.spatial.transform import Rotation
-import math
 import os
-
+import numpy as np
 if os.name == 'nt':
     import msvcrt
 else:
@@ -19,7 +9,9 @@ from kortex_api.autogen.client_stubs.BaseClientRpc import BaseClient
 from kortex_api.autogen.client_stubs.BaseCyclicClientRpc import BaseCyclicClient
 from kortex_api.autogen.messages import Base_pb2, BaseCyclic_pb2, Common_pb2
 import sys
-from Lab02_intro import *
+# from lab02_student import *
+from lab02_solution import *
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../Lab1/"))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../common/robot"))
@@ -36,8 +28,7 @@ class robotic_arm():
         self.q = None
         self.d = None
         self.dh_params = {}
-        self.tf_matrices_list = []
-
+        self.T = None
 
     def set_joints(self, joint_number):
         if joint_number > 0:
@@ -61,29 +52,12 @@ class robotic_arm():
         self.set_tranform_matrices()
 
     def set_tranform_matrices(self):
-        T_01 = dh(alpha1, a1, d1, q1).subs(self.dh_params)
-        self.tf_matrices_list.append(T_01)
-        T_12 = dh(alpha2, a2, d2, q2).subs(self.dh_params)
-        self.tf_matrices_list.append(T_01 * T_12)
-        T_23 = dh(alpha3, a3, d3, q3).subs(self.dh_params)
-        self.tf_matrices_list.append(T_01 * T_12 * T_23)
-        T_34 = dh(alpha4, a4, d4, q4).subs(self.dh_params)
-        self.tf_matrices_list.append(T_01 * T_12 * T_23 * T_34)
-        T_45 = dh(alpha5, a5, d5, q5).subs(self.dh_params)
-        self.tf_matrices_list.append(T_01 * T_12 * T_23 * T_34 * T_45)
-        T_56 = dh(alpha6, a6, d6, q6).subs(self.dh_params)
-        T = T_01 * T_12 * T_23 * T_34 * T_45 * T_56
-        self.tf_matrices_list.append(T)
-
-    def show_transform_matrices(self):
-        print('Transform Matrices are: {}'.format(self.tf_matrices_list))
-
-    @staticmethod
-    def TF_matrix(alpha, a, d, q):
+        self.T = FK()
 
     def forward_kinematics(self, theta_list):
         """
         calculate forward kinematic for a desired theta_list
+
         :param data: theta_list
         :type data: list
         :return: forward kinematics list SE-3  of the form [x y z roll pitch yaw] w.r.t base_link
@@ -92,76 +66,67 @@ class robotic_arm():
 
         theta_dict = {}
         # homogenous transformation matrix from base_link to end_effector [type: syms]
-        T_0G = self.tf_matrices_list[-1]
 
         for i in range(len(theta_list)):
             theta_dict[self.q[i]] = theta_list[i]
 
         # homogenous transformation matrix from base_link to end_effector [type: numeric matrix]
-        T_0G_eval = T_0G.evalf(subs=theta_dict, chop=True, maxn=4)
+        T_0G_eval = self.T.evalf(subs=theta_dict, chop=True, maxn=4)
 
         # TODO: calculate [x,y,z,roll,pitch,yaw] ### change to tranformation matrix
 
-        self.current_pos =  xyz_rpy(T_0G_eval)
+        self.current_pos = xyz_rpy(T_0G_eval)
 
         return self.current_pos
 
-def move_to_angle_conf(Q):
-
-    # Parse arguments
+def move_to_angle_conf(angle_conf_eval):
     args = utilities.parseConnectionArguments()
-
-    # Create connection to the device and get the router
     with utilities.DeviceConnection.createTcpConnection(args) as router:
         # Create required services
         base = BaseClient(router)
         base_cyclic = BaseCyclicClient(router)
-
         input("Remove any objects near the arm and press Enter")
-        # Example core
-        success = True
-        flag = True
-        display = True
+        for i in range(len(angle_conf_eval)):
+            Q = angle_conf_eval['t'+ str(i + 1)]
+        # Create connection to the device and get the router
+            # Example core
+            success = True
+            flag = True
+            display = True
 
-        while flag and success:
+            while flag and success:
 
-            if display:
-                key = input("Press H to move the arm  to home position\n"
-                      "Press A to move the arm to desired angular action: " + str(Q) + '\n'
-                      "To Quit press Q")
-                display = False
+                if display:
+                    key = input("Press H to move the arm  to home position\n"
+                          "Press A to move the arm to desired angular action: " + '\n' + str(np.round(Q.squeeze(), 2))
+                                + '\n' + "To Quit press Q")
+                    display = False
 
-            if str(key) == 'h' or 'H':
-                success &= example_move_to_home_position(base)
-                if success:
-                    print('Successfully moved to home position')
-                    display = True
-                else:
-                    print('Huston, we have a problem, please call the instructor')
+                if str(key) == 'h' or str(key) == 'H':
+                    success &= example_move_to_home_position(base)
+                    if success:
+                        print('Successfully moved to home position')
+                        display = True
+                    else:
+                        print('Huston, we have a problem, please call the instructor')
 
-            if str(key) == 'A' or 'a':
-                success &= example_angular_action_movement(base)
-                if success:
-                    print('Successfully moved to arm to desired angular action')
-                    display = True
-                else:
-                    print('Huston, we have a problem, please call the instructor')
+                if str(key) == 'A' or str(key) == 'a':
+                    success &= example_cartesian_action_movement(base, base_cyclic, C=Q)
+                    if success:
+                        print('Successfully moved to arm to desired angular action')
+                        flag = False
+                    else:
+                        print('Huston, we have a problem, please call the instructor')
 
 
-# if __name__ == '__main__':
-def run():
+if __name__ == '__main__':
     # For simplicity, we used symbolic function for differentiation
     # A tutorial can be found here: https://docs.sympy.org/latest/tutorial/index.html
-
-    #######################
-    ###### Part 1 #########
-    #######################
 
     arm = robotic_arm()     # Initialize a generic robotic arm
     arm.set_joints(6)       # Define the amount of joints
 
     # DH params
-
 
     # TODO: fill the following dict as described in the lab notes
 
@@ -176,5 +141,5 @@ def run():
         angle_conf_eval.update({'t'+ str(i + 1): arm.forward_kinematics(angle_conf_target_dict['t' + str(i + 1)])})
 
     # Import arm modules and move to each configuration
-    for i in range(len(angle_conf_eval)):
-        move_to_angle_conf(angle_conf_eval['t'+ str(i + 1)])
+    move_to_angle_conf(angle_conf_eval)
+
