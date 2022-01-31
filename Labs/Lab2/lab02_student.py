@@ -30,6 +30,9 @@ def set_dh_table():
 
 def dh(alpha, a, d, theta):
     """
+    Returns:
+
+
 
     Args:
         alpha: torsion angle
