@@ -20,6 +20,11 @@ from kortex_api.autogen.client_stubs.BaseClientRpc import BaseClient
 from kortex_api.autogen.client_stubs.BaseCyclicClientRpc import BaseCyclicClient
 from kortex_api.autogen.messages import Base_pb2, BaseCyclic_pb2, Common_pb2
 import sys
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../Lab1/"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../common/robot"))
+from robot_actions import *
+import utilities
 
 class robotic_arm():
 
@@ -255,14 +260,6 @@ class robotic_arm():
 
 def move_to_angle_conf(Q, base, base_cyclic):
 
-
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../Lab1/"))
-    from lab_01_single_action import example_move_to_home_position, example_cartesian_action_movement, example_angular_action_movement
-    import utilities
-
-
-
     input("Remove any objects near the arm and press Enter")
     # Example core
     success = True
@@ -295,11 +292,6 @@ def move_to_angle_conf(Q, base, base_cyclic):
         break
 
 def move_to_gripper_conf(C, base, base_cyclic):
-
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../Lab1/"))
-    from lab_01_single_action import example_move_to_home_position, example_cartesian_action_movement, example_angular_action_movement
-    import utilities
 
     input("Remove any objects near the arm and press Enter")
     # Example core
@@ -335,10 +327,6 @@ def move_to_gripper_conf(C, base, base_cyclic):
 
 if __name__ == '__main__':
     ## Init Robot
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../Lab1/"))
-    from lab_01_single_action import example_move_to_home_position, example_cartesian_action_movement, example_angular_action_movement
-    import utilities
 
     # Parse arguments
     args = utilities.parseConnectionArguments()
@@ -387,28 +375,28 @@ if __name__ == '__main__':
         for i in range(len(angle_conf_eval)):
             move_to_gripper_conf(angle_conf_eval['t'+ str(i + 1)], base, base_cyclic)
 
-        #######################
-        ###### Part 2 #########
-        #######################
-
-        #                                  x   y   z    roll  pitch  yaw
-        gripper_conf_target_dict = {'t2': [0.057, -0.01, 1.0033, 0., 0.0, 0.],
-                                    't1': [-0.03017, 0.2087, 0.8917, -0.6500, -1.0529, -1.9830],
-                                    't3': [0.5233, 0.2249, 0.2814, -1.3889, 0.9066, 0.9269],
-                                    't4': [-0.3851, -0.1620, -0.3096, -1.5797, -1.8567, 0.8468],
-                                    't5': [0.057, -0.01, 1.0033, 0., 0.0, 0.]}
-
-        init_guess = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
-        gripper_conf_eval = {}
-        guess = init_guess
-        for i in range(len(gripper_conf_target_dict)):
-            target = gripper_conf_target_dict['t' + str(i + 1)]
-            Q = arm.inverse_kinematicsV2(guess, target)
-            predicted_coordinates = arm.forward_kinematics(Q)[-1]
-            print('Target: {} ,  Predicted: {}, Angles: {}'.format(target, predicted_coordinates, Q))
-            gripper_conf_eval.update({'t' + str(i + 1): Q})
-            guess = Q
-
-        # Import arm modules and move to each configration
-        for i in range(len(angle_conf_eval)):
-            move_to_gripper_conf(gripper_conf_eval['t'+ str(i + 1)], base, base_cyclic)
+        # #######################
+        # ###### Part 2 #########
+        # #######################
+        #
+        # #                                  x   y   z    roll  pitch  yaw
+        # gripper_conf_target_dict = {'t2': [0.057, -0.01, 1.0033, 0., 0.0, 0.],
+        #                             't1': [-0.03017, 0.2087, 0.8917, -0.6500, -1.0529, -1.9830],
+        #                             't3': [0.5233, 0.2249, 0.2814, -1.3889, 0.9066, 0.9269],
+        #                             't4': [-0.3851, -0.1620, -0.3096, -1.5797, -1.8567, 0.8468],
+        #                             't5': [0.057, -0.01, 1.0033, 0., 0.0, 0.]}
+        #
+        # init_guess = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+        # gripper_conf_eval = {}
+        # guess = init_guess
+        # for i in range(len(gripper_conf_target_dict)):
+        #     target = gripper_conf_target_dict['t' + str(i + 1)]
+        #     Q = arm.inverse_kinematicsV2(guess, target)
+        #     predicted_coordinates = arm.forward_kinematics(Q)[-1]
+        #     print('Target: {} ,  Predicted: {}, Angles: {}'.format(target, predicted_coordinates, Q))
+        #     gripper_conf_eval.update({'t' + str(i + 1): Q})
+        #     guess = Q
+        #
+        # # Import arm modules and move to each configration
+        # for i in range(len(angle_conf_eval)):
+        #     move_to_gripper_conf(gripper_conf_eval['t'+ str(i + 1)], base, base_cyclic)

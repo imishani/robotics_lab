@@ -371,7 +371,7 @@ def trajectory_config(base, angles):
         return finished
 
 def traj_gen_config(q1, q2, t, Tf):
-    '''path plan configuration space'''
+    ''' path plan configuration space '''
     qm = q1 + (q2 - q1)/2
     a0 = q1
     a1 = np.zeros((6,))

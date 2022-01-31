@@ -380,6 +380,7 @@ def static_load(base, base_cyclic):
     tau = K_t*I - F
     torque is proportinal to the current at each motor
     For each of the motors, find Kt such as K_t = tau/I
+    
     """
     #################
     c = 0
