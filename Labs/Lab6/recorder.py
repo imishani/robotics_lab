@@ -100,7 +100,7 @@ if __name__ == "__main__":
             # Create required services
             base = BaseClient(router)
             base_cyclic = BaseCyclicClient(router)
-
+            record(base_cyclic)
             try:
                 joint_trajectory = record(base_cyclic)
                 save()

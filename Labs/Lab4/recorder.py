@@ -66,9 +66,9 @@ def record(base_cyclic):
 
 def save():
     global joint_trajectory
-    logdir_prefix = 'lab-03'
+    logdir_prefix = 'lab-04'
 
-    data_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../data')
+    data_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), './data')
 
     if not (os.path.exists(data_path)):
         os.makedirs(data_path)
@@ -100,7 +100,7 @@ if __name__ == "__main__":
             # Create required services
             base = BaseClient(router)
             base_cyclic = BaseCyclicClient(router)
-            record(base_cyclic)
+
             try:
                 joint_trajectory = record(base_cyclic)
                 save()

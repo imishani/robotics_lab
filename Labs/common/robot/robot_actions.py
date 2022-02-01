@@ -21,6 +21,21 @@ Communications Failed
 if os.name != 'nt':
     settings = termios.tcgetattr(sys.stdin)
 
+def all_close(goal, actual, tolerance):
+    """
+    Convenience method for testing if a list of values are within a tolerance of their counterparts in another list
+    @param: goal       A list of floats, a Pose or a PoseStamped
+    @param: actual     A list of floats, a Pose or a PoseStamped
+    @param: tolerance  A float
+    @returns: bool
+    """
+    if type(goal) is list:
+        for index in range(len(goal)):
+            if abs(actual[index] - goal[index]) > tolerance:
+                return False
+
+    return True
+
 def getKey():
     if os.name == 'nt':
         return msvcrt.getch()
@@ -254,3 +269,56 @@ def example_cartesian_trajectory_movement(base, base_cyclic):
     else:
         print("Timeout on action notification wait")
     return finished
+
+
+def move_to_home_fixed(base):
+    Q = [10.0, 340.0, 75.0, 340.0, 300.0, 10.0]
+    action = Base_pb2.Action()
+    action.name = "Example angular action movement"
+    action.application_data = ""
+    actuator_count = base.GetActuatorCount()
+
+    for joint_id in range(actuator_count.count):
+        joint_angle = action.reach_joint_angles.joint_angles.joint_angles.add()
+        joint_angle.value = Q[joint_id]
+
+    e = threading.Event()
+    notification_handle = base.OnNotificationActionTopic(
+        check_for_end_or_abort(e),
+        Base_pb2.NotificationOptions()
+    )
+
+    print("Executing action")
+    base.ExecuteAction(action)
+
+    print("Waiting for movement to finish ...")
+    finished = e.wait(TIMEOUT_DURATION)
+    base.Unsubscribe(notification_handle)
+
+    if finished:
+        print("Angular movement completed")
+    else:
+        print("Timeout on action notification wait")
+    return finished
+
+
+def populateCartesianCoordinate(waypointInformation):
+    waypoint = Base_pb2.CartesianWaypoint()
+    waypoint.pose.x = waypointInformation[0]
+    waypoint.pose.y = waypointInformation[1]
+    waypoint.pose.z = waypointInformation[2]
+    waypoint.blending_radius = waypointInformation[3]
+    waypoint.pose.theta_x = waypointInformation[4]
+    waypoint.pose.theta_y = waypointInformation[5]
+    waypoint.pose.theta_z = waypointInformation[6]
+    waypoint.reference_frame = Base_pb2.CARTESIAN_REFERENCE_FRAME_BASE
+
+    return waypoint
+
+
+def populateAngularPose(jointPose, durationFactor):
+    waypoint = Base_pb2.AngularWaypoint()
+    waypoint.angles.extend(jointPose)
+    waypoint.duration = durationFactor * 5.0
+
+    return waypoint
