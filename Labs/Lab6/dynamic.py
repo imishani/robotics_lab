@@ -94,9 +94,14 @@ class Dynamics():
                  [-np.sin(q[5]), -np.cos(q[5]), 0, 0],
                  [0, 0, 0, 0]])
 
-    def gravity(self,q):
+    def gravity(self, q):
+        '''
 
+        G = sum(m_i * J_li.T) * g
+
+        '''
         self.forward(q)
+
         g0 = self.m1 * self.T01d1 @ self.Tb1 + self.m2 * self.T01d1 @ self.T12 @ self.Tb2 + \
              self.m3 * self.T01d1 @ self.T12 @ self.T23 @ self.Tb3 + \
              self.m4 * self.T01d1 @ self.T12 @ self.T23 @ self.T34 @ self.Tb4 + \
@@ -389,15 +394,10 @@ class Dynamics():
         Md[4,:,:]=self.J5d5.T @ I5 @ self.J5 + self.J5.T @ I5 @ self.J5d5 + self.J6d5.T @ I6 @ self.J6 + self.J6.T @ I6 @ self.J6d5
         Md[5,:,:]=self.J6d6.T @ I6 @ self.J6 + self.J6.T @ I6 @ self.J6d6
 
-        cor = np.zeros((6,6))
-        for i in range(6):
-            for j in range(6):
-                for k in range(6):
-                    cor[i,j] = cor[i,j] + 0.5* (Md[k,i,j] + Md[j,i,k] -Md[i,j,k])*qp[k]
-
-        return cor
+        return calc_coriolis(Md)
 
     def precomputed_torque(self, q, qp, qpp):
+
 
         couple = self.inertia(q) @ qpp.T + self.coriolis(q,qp) @ qp.T + self.gravity(q)
         # print(max(self.inertia(q) @ qpp.T), max(self.coriolis(q,qp) @ qp.T), max(self.gravity(q)))

@@ -18,8 +18,10 @@ e = """
 Communications Failed
 """
 
+
 if os.name != 'nt':
     settings = termios.tcgetattr(sys.stdin)
+
 
 def all_close(goal, actual, tolerance):
     """
@@ -36,6 +38,7 @@ def all_close(goal, actual, tolerance):
 
     return True
 
+
 def getKey():
     if os.name == 'nt':
         return msvcrt.getch()
@@ -49,10 +52,7 @@ def getKey():
     termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
     return key
 
-# Create closure to set an event after an END or an ABORT
-# Maximum allowed waiting time during actions (in seconds)
 
-# Create closure to set an event after an END or an ABORT
 def check_for_end_or_abort(e):
     """Return a closure checking for END or ABORT notifications
 
@@ -322,8 +322,6 @@ def populateAngularPose(jointPose, durationFactor):
     waypoint.duration = durationFactor * 5.0
 
     return waypoint
-
-
 
 
 def ClosingGripperCommands(base, value=0.5):

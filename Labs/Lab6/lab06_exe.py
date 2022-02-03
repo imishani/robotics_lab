@@ -1,171 +1,25 @@
-#! /usr/bin/env python3
-
-###
-# KINOVA (R) KORTEX (TM)
-#
-# Copyright (c) 2018 Kinova inc. All rights reserved.
-#
-# This software may be modified and distributed
-# under the terms of the BSD 3-Clause license.
-#
-# Refer to the LICENSE file for details.
-#
 from sympy import *
-from numpy import linalg as LA
-from numpy.linalg import inv
-import time
-import logging
-from scipy.spatial.transform import Rotation
-import math
 import os
 import numpy as np
-import sys
-import os
-import time
-import threading
-
-import sys, select, os
-
 if os.name == 'nt':
     import msvcrt
 else:
     import tty, termios
-
 from kortex_api.autogen.client_stubs.BaseClientRpc import BaseClient
 from kortex_api.autogen.client_stubs.BaseCyclicClientRpc import BaseCyclicClient
 from kortex_api.autogen.messages import Base_pb2, BaseCyclic_pb2, Common_pb2
-import signal
 import sys
-import time
-import threading
+# from lab02_student import *
+from lab06_solution import *
 
-# Maximum allowed waiting time during actions (in seconds)
-TIMEOUT_DURATION = 20
-e = """
-Communications Failed
-"""
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../Lab1/"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../common/pyFT300"))
+from pyFT300stream import *
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../common/robot"))
+from robot_actions import *
+import utilities
 
-
-def getKey():
-    if os.name == 'nt':
-        return msvcrt.getch()
-    tty.setraw(sys.stdin.fileno())
-    rlist, _, _ = select.select([sys.stdin], [], [], 0.1)
-    if rlist:
-        key = sys.stdin.read(1)
-    else:
-        key = ''
-
-    termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
-    return key
-
-
-def all_close(goal, actual, tolerance):
-    """
-    Convenience method for testing if a list of values are within a tolerance of their counterparts in another list
-    @param: goal       A list of floats, a Pose or a PoseStamped
-    @param: actual     A list of floats, a Pose or a PoseStamped
-    @param: tolerance  A float
-    @returns: bool
-    """
-    if type(goal) is list:
-        for index in range(len(goal)):
-            if abs(actual[index] - goal[index]) > tolerance:
-                return False
-
-    return True
-
-
-def check_for_end_or_abort(e):
-    """Return a closure checking for END or ABORT notifications
-
-    Arguments:
-    e -- event to signal when the action is completed
-        (will be set when an END or ABORT occurs)
-    """
-
-    def check(notification, e=e):
-        print("EVENT : " + \
-              Base_pb2.ActionEvent.Name(notification.action_event))
-        if notification.action_event == Base_pb2.ACTION_END \
-                or notification.action_event == Base_pb2.ACTION_ABORT:
-            e.set()
-
-    return check
-
-
-def example_move_to_home_position(base):
-    # Make sure the arm is in Single Level Servoing mode
-    base_servo_mode = Base_pb2.ServoingModeInformation()
-    base_servo_mode.servoing_mode = Base_pb2.SINGLE_LEVEL_SERVOING
-    base.SetServoingMode(base_servo_mode)
-
-    # Move arm to ready position
-    print("Moving the arm to a safe position")
-    action_type = Base_pb2.RequestedActionType()
-    action_type.action_type = Base_pb2.REACH_JOINT_ANGLES
-    action_list = base.ReadAllActions(action_type)
-    action_handle = None
-    for action in action_list.action_list:
-        if action.name == "Home":
-            action_handle = action.handle
-
-    if action_handle == None:
-        print("Can't reach safe position. Exiting")
-        return False
-
-    e = threading.Event()
-    notification_handle = base.OnNotificationActionTopic(
-        check_for_end_or_abort(e),
-        Base_pb2.NotificationOptions()
-    )
-
-    base.ExecuteActionFromReference(action_handle)
-    finished = e.wait(TIMEOUT_DURATION)
-    base.Unsubscribe(notification_handle)
-
-    if finished:
-        print("Safe position reached")
-    else:
-        print("Timeout on action notification wait")
-    return finished
-
-
-def move_to_zero_position(base):
-    # Make sure the arm is in Single Level Servoing mode
-    base_servo_mode = Base_pb2.ServoingModeInformation()
-    base_servo_mode.servoing_mode = Base_pb2.SINGLE_LEVEL_SERVOING
-    base.SetServoingMode(base_servo_mode)
-
-    # Move arm to ready position
-    print("Moving the arm to a safe position")
-    action_type = Base_pb2.RequestedActionType()
-    action_type.action_type = Base_pb2.REACH_JOINT_ANGLES
-    action_list = base.ReadAllActions(action_type)
-    action_handle = None
-    for action in action_list.action_list:
-        if action.name == "Zero":
-            action_handle = action.handle
-
-    if action_handle == None:
-        print("Can't reach safe position. Exiting")
-        return False
-
-    e = threading.Event()
-    notification_handle = base.OnNotificationActionTopic(
-        check_for_end_or_abort(e),
-        Base_pb2.NotificationOptions()
-    )
-
-    base.ExecuteActionFromReference(action_handle)
-    finished = e.wait(TIMEOUT_DURATION)
-    base.Unsubscribe(notification_handle)
-
-    if finished:
-        print("Safe position reached")
-    else:
-        print("Timeout on action notification wait")
-    return finished
 
 
 class robotic_arm():
@@ -318,20 +172,60 @@ class robotic_arm():
 
         return Q
 
-    def path_plan(self, guess, target_list):
-        Q_list = []
-        for i in range(len(target_list)):
-            target = target_list['t' + str(i + 1)]
-            Q = self.inverse_kinematics(guess, target)
-            predicted_coordinates = self.forward_kinematics(Q)
-            print('Target: {} ,  Predicted: {}'.format(target, predicted_coordinates[-1]))
-            Q_list.append(Q)
-            guess = Q
-        Q_matrix = np.matrix(Q_list)
-        return Q_matrix
+def prop_k_estimation(base_cyclic, ):
 
+    theta_dict = {}
+    cur_joint = np.zeros(len(base_cyclic.RefreshFeedback().actuators))
+    cur_torque = np.zeros(len(base_cyclic.RefreshFeedback().actuators))
+    cur_current = np.zeros(len(base_cyclic.RefreshFeedback().actuators))
+    Kt = np.zeros(len(base_cyclic.RefreshFeedback().actuators))
+    Kt_sum = np.zeros(len(base_cyclic.RefreshFeedback().actuators))
 
-def static_load(base, base_cyclic):
+    ################# Part  1
+    """
+    Current-based torque estimation
+    tau = K_t*I 
+    torque is proportinal to the current at each motor
+    For each of the motors, find Kt such as K_t = tau/I
+    
+    """
+    #################
+    c=0
+    while(False):
+        for i in range(len(base_cyclic.RefreshFeedback().actuators)):
+            cur_joint[i] = base_cyclic.RefreshFeedback().actuators[i].position
+            theta_dict.update({'q' + str(i + 1): cur_joint[i]})
+            cur_torque[i] = base_cyclic.RefreshFeedback().actuators[i].torque
+            cur_current[i] = base_cyclic.RefreshFeedback().actuators[i].current_motor
+            Kt[i] = cur_torque[i]/cur_current[i]
+            print("Kt " + str(i+1) + " : " + str(Kt[i]))
+            c+=1
+        Kt_sum += Kt
+        print("Kt: " + str(Kt_sum / c))
+
+def static_load(base_cyclic, ft):
+
+    #################
+    ### External-force Torque estimation
+    ### tau = -J.T * F
+    #################
+    theta_dict = {}
+    cur_joint = np.zeros(len(base_cyclic.RefreshFeedback().actuators))
+    cur_torque = np.zeros(len(base_cyclic.RefreshFeedback().actuators))
+
+    while True:
+        for i in range(len(base_cyclic.RefreshFeedback().actuators)):
+            cur_joint[i] = base_cyclic.RefreshFeedback().actuators[i].position
+            cur_torque[i] = base_cyclic.RefreshFeedback().actuators[i].torque
+            theta_dict.update({'q' + str(i + 1): cur_joint[i]})
+            J = np.matrix(arm.jacobian_mat.evalf(subs=theta_dict, chop=True, maxn=10)).astype(np.float64)
+            F = ft.get_reading()  # Fx,Fy,Fz, Mx,My,Mz
+            tau = -J.T.dot(F)  # estimated
+            error = tau - cur_torque
+            print("cur_torque: " + str(cur_torque.tolist()) )
+            print("cur_tau: " + str(cur_torque.tolist()) )
+
+def dynamic_test(base, base_cyclic):
     success = True
     try:
         success &= move_to_zero_position(base)
@@ -366,44 +260,8 @@ def static_load(base, base_cyclic):
 
     while time.time() - time_ < (t[-1] + 2):
         recorded_torques = np.vstack((recorded_torques, np.array([base_cyclic.RefreshFeedback().actuators[i].torque
-                                  for i in range(len(base_cyclic.RefreshFeedback().actuators))])))
-    theta_dict = {}
-    cur_joint = np.zeros(len(base_cyclic.RefreshFeedback().actuators))
-    cur_torque = np.zeros(len(base_cyclic.RefreshFeedback().actuators))
-    cur_current = np.zeros(len(base_cyclic.RefreshFeedback().actuators))
-    Kt = np.zeros(len(base_cyclic.RefreshFeedback().actuators))
-    Kt_sum = np.zeros(len(base_cyclic.RefreshFeedback().actuators))
-
-    ################# Part  1
-    """
-    Current-based torque estimation
-    tau = K_t*I - F
-    torque is proportinal to the current at each motor
-    For each of the motors, find Kt such as K_t = tau/I
-    
-    """
-    #################
-    c = 0
-    while(False):
-        c += 1
-        print("Kt: " + str(Kt_sum/c))
-
-    #################
-    ### External-force Torque estimation
-    ### tau = -J.T * F
-    #################
-
-    J = np.matrix(arm.jacobian_mat.evalf(subs=theta_dict, chop=True, maxn=10)).astype(np.float64)
-    F = np.array([0.0, 0.0])    # Todo: get F by external force sensor
-    tau = -J.T.dot(F)  # estimated
-    error = tau - cur_torque
-
-    #################
-    ### Dynamic-Modeling
-    """
-    tau = M(q)q_ddot + C(q,q_dot)q_dot + g(q)
-    """
-    ################
+                                                                  for i in range(
+                len(base_cyclic.RefreshFeedback().actuators))])))
 
 
 
@@ -451,6 +309,13 @@ if __name__ == "__main__":
             # Init Jacobian
             arm.jacobian_func()
 
+            # init ft
+            ft = FT300Sensor()
+            ft.init_connection()
+            # while True:
+            #     cur_ft = ft.get_reading()
+            #     print(cur_ft)
+
             while flag and success:
 
                 if display:
@@ -470,7 +335,7 @@ if __name__ == "__main__":
 
                 if str(key) == 'c' or str(key) == 'C':
 
-                    success &= static_load(base, base_cyclic)
+                    success &= static_load(base_cyclic, ft)
                     if success:
                         print('Successfully moved')
                         display = True

@@ -216,7 +216,7 @@ if __name__ == "__main__":
                         print('Huston, we have a problem, please call the instructor')
                 # Close gripper
                 if str(key) == 'g' or str(key) == 'G':
-                    value = input("Enter the amount to close: ")
+                    value = input("Enter the amount to close (1 is maximum 0 is minimum): ")
                     success &= ClosingGripperCommands(base, float(value))
                     if success:
                         print('Successfully closed the gripper')
