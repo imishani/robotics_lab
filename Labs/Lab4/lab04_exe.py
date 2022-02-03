@@ -192,9 +192,11 @@ if __name__ == "__main__":
 
                 if display:
                     key = input("Press H to move the arm  to home position\n"
-                          "Press C to follow a trajectory on task-space\n"
-                          "Press A to follow a trajectory on configuration space\n"
-                          "To Quit press Q")
+                                "Press G to close the gripper\n"
+                                "Press O to open the gripper\n"
+                                "Press C to follow a trajectory on task-space\n"
+                                "Press A to follow a trajectory on configuration space\n"
+                                "To Quit press Q")
                     print(str(key))
                     display = False
 
@@ -204,6 +206,7 @@ if __name__ == "__main__":
                 else:
                     print('Huston, we have a problem, please call the instructor')
 
+                # Home
                 if str(key) == 'h' or str(key) == 'H':
                     success &= example_move_to_home_position(base)
                     if success:
@@ -211,7 +214,24 @@ if __name__ == "__main__":
                         display = True
                     else:
                         print('Huston, we have a problem, please call the instructor')
-
+                # Close gripper
+                if str(key) == 'g' or str(key) == 'G':
+                    value = input("Enter the amount to close: ")
+                    success &= ClosingGripperCommands(base, float(value))
+                    if success:
+                        print('Successfully closed the gripper')
+                        display = True
+                    else:
+                        print('Huston, we have a problem, please call the instructor')
+                # Open gripper
+                if str(key) == 'o' or str(key) == 'O':
+                    success &= OpeningGripperCommands(base)
+                    if success:
+                        print('Successfully closed the gripper')
+                        display = True
+                    else:
+                        print('Huston, we have a problem, please call the instructor')
+                # Trajectory task-space
                 if str(key) == 'c' or str(key) == 'C':
                     waypoints = generate_x_goals_list()
                     waypoints = np.hstack((waypoints[:, :3], np.zeros((waypoints.shape[0], 1)), waypoints[:, 3:]))
@@ -223,7 +243,7 @@ if __name__ == "__main__":
                         display = True
                     else:
                         print('Huston, we have a problem, please call the instructor')
-
+                # Trajectory conf-space
                 if str(key) == 'a' or str(key) == 'A':
                     waypoints = generate_q_goals_list()
                     waypoints = tuple(tuple(row) for row in waypoints)
