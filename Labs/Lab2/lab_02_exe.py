@@ -138,7 +138,7 @@ if __name__ == '__main__':
 
     # TODO: fill the blank line in the forward_kinematics function
     for i in range(len(angle_conf_target_dict)):
-        angle_conf_eval.update({'t'+ str(i + 1): arm.forward_kinematics(angle_conf_target_dict['t' + str(i + 1)])})
+        angle_conf_eval.update({'t' + str(i + 1): arm.forward_kinematics(angle_conf_target_dict['t' + str(i + 1)])})
 
     # Import arm modules and move to each configuration
     move_to_angle_conf(angle_conf_eval)
