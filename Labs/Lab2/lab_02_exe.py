@@ -17,9 +17,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../Lab1/"))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../common/robot"))
 from robot_actions import *
 import utilities
+np.set_printoptions(precision=2, suppress=True, threshold=5)
 
-
-class robotic_arm():
+class robotic_arm_lab2():
 
     def __init__(self):
         self.joints = 0
@@ -52,7 +52,33 @@ class robotic_arm():
         self.set_tranform_matrices()
 
     def set_tranform_matrices(self):
-        self.T = FK()
+        self.T = transform_matrices()
+
+    def forward_kinematics_sympy(self, theta_list):
+        """
+        calculate forward kinematic for a desired theta_list
+
+        :param data: theta_list
+        :type data: list
+        :return: forward kinematics list SE-3  of the form [x y z roll pitch yaw] w.r.t base_link
+        :rtype: list
+        """
+
+        theta_dict = {}
+        '''homogenous transformation matrix from base_link to end_effector [type: syms]'''
+
+        for i in range(len(theta_list)):
+            theta_dict[self.q[i]] = theta_list[i]
+
+        '''homogenous transformation matrix from base_link to end_effector [type: numeric matrix] '''
+        T_0G_eval = self.T.evalf(subs=theta_dict, chop=True, maxn=4)
+
+        '''calculate [x,y,z,roll,pitch,yaw] '''
+
+        self.current_pos = xyz_rpy(T_0G_eval)
+
+        return self.current_pos
+
 
     def forward_kinematics(self, theta_list):
         """
@@ -64,22 +90,19 @@ class robotic_arm():
         :rtype: list
         """
 
-        theta_dict = {}
-        # homogenous transformation matrix from base_link to end_effector [type: syms]
+        '''homogenous transformation matrix from base_link to end_effector [type: numeric matrix] '''
+        T_0G_eval = FK(theta_list)
 
-        for i in range(len(theta_list)):
-            theta_dict[self.q[i]] = theta_list[i]
-
-        # homogenous transformation matrix from base_link to end_effector [type: numeric matrix]
-        T_0G_eval = self.T.evalf(subs=theta_dict, chop=True, maxn=4)
-
-        # TODO: calculate [x,y,z,roll,pitch,yaw] ### change to tranformation matrix
+        '''calculate [x,y,z,roll,pitch,yaw] '''
 
         self.current_pos = xyz_rpy(T_0G_eval)
 
+
         return self.current_pos
 
+
 def move_to_angle_conf(angle_conf_eval):
+
     args = utilities.parseConnectionArguments()
     with utilities.DeviceConnection.createTcpConnection(args) as router:
         # Create required services
@@ -87,7 +110,7 @@ def move_to_angle_conf(angle_conf_eval):
         base_cyclic = BaseCyclicClient(router)
         input("Remove any objects near the arm and press Enter")
         for i in range(len(angle_conf_eval)):
-            Q = angle_conf_eval['t'+ str(i + 1)]
+            C = angle_conf_eval['t'+ str(i + 1)]
         # Create connection to the device and get the router
             # Example core
             success = True
@@ -98,8 +121,9 @@ def move_to_angle_conf(angle_conf_eval):
 
                 if display:
                     key = input("Press H to move the arm  to home position\n"
-                          "Press A to move the arm to desired angular action: " + '\n' + str(np.round(Q.squeeze(), 2))
-                                + '\n' + "To Quit press Q")
+                                "Press A to move the arm to desired cartesian position: \n"
+                                + str(np.round(C.squeeze(), 3))+ '\n'
+                                + "To Quit press Q\n")
                     display = False
 
                 if str(key) == 'h' or str(key) == 'H':
@@ -111,26 +135,26 @@ def move_to_angle_conf(angle_conf_eval):
                         print('Huston, we have a problem, please call the instructor')
 
                 if str(key) == 'A' or str(key) == 'a':
-                    success &= example_cartesian_action_movement(base, base_cyclic, C=Q)
+                    success &= example_cartesian_action_movement(base, base_cyclic, C=C)
                     if success:
                         print('Successfully moved to arm to desired angular action')
                         flag = False
                     else:
                         print('Huston, we have a problem, please call the instructor')
+                if str(key) == 'q' or str(key) == 'Q':
+                    break
 
 
 if __name__ == '__main__':
     # For simplicity, we used symbolic function for differentiation
     # A tutorial can be found here: https://docs.sympy.org/latest/tutorial/index.html
 
-    arm = robotic_arm()     # Initialize a generic robotic arm
+    arm = robotic_arm_lab2()     # Initialize a generic robotic arm
     arm.set_joints(6)       # Define the amount of joints
-
-    # DH params
 
     # TODO: fill the following dict as described in the lab notes
 
-    arm.set_dh_param_dict(set_dh_table()) # set dh paramters
+    arm.set_dh_param_dict(set_dh_table())
 
     # TODO: enter the desired joint state target configurations
     angle_conf_target_dict = angles_to_follow()
@@ -140,6 +164,12 @@ if __name__ == '__main__':
     for i in range(len(angle_conf_target_dict)):
         angle_conf_eval.update({'t' + str(i + 1): arm.forward_kinematics(angle_conf_target_dict['t' + str(i + 1)])})
 
-    # Import arm modules and move to each configuration
+    ''' Import arm modules and move to each configuration '''
+    print('Evaluation of the target angle configurations:\n')
+    print('         X    Y     Z    roll    pitch   yaw')
+    for target in angle_conf_eval:
+        print(str(target) + '    ' + str(angle_conf_eval[target].reshape(-1)))
+    print()
+
     move_to_angle_conf(angle_conf_eval)
 

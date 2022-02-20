@@ -45,19 +45,6 @@ def set_tranform_matrices():
     tf_matrices_list.append(T)
     return tf_matrices_list
 
-def create_jacobian_syms():
-
-    tf_matrices_list = set_tranform_matrices()
-
-    T_0G = tf_matrices_list[-1]
-    jacobian_mat = [diff(T_0G[:3, -1], q[i]).reshape(1, 3) for i in range(len(q))]
-    jacobian_mat = Matrix(jacobian_mat).T
-    temp = Matrix([0, 0, 1])
-    for index in range(len(tf_matrices_list) - 2):
-        temp = temp.col_insert(index + 1, tf_matrices_list[index][:3, 2])
-
-    return Matrix(BlockMatrix([[jacobian_mat], [temp]]))
-
 def forward_hom_mat(theta_list):
 
     theta_dict = {}
@@ -69,12 +56,32 @@ def forward_hom_mat(theta_list):
 
     return T_0G.evalf(subs=theta_dict, chop=True, maxn=4)
 
-def Jacobian(Q):
+def create_jacobian_syms():
+
+    tf_matrices_list = set_tranform_matrices()
+
+    T_0G = tf_matrices_list[-1]  # Get homogeneous transformation between base to TCP
+    jacobian_mat = [diff(T_0G[:3, -1], q[i]).reshape(1, 3) for i in range(len(q))]
+    jacobian_mat = Matrix(jacobian_mat).T
+    temp = Matrix([0, 0, 1])
+    for index in range(len(tf_matrices_list) - 2):
+        temp = temp.col_insert(index + 1, tf_matrices_list[index][:3, 2])
+
+    return Matrix(BlockMatrix([[jacobian_mat], [temp]]))
+
+def LinearJacobian(Q):
 
     jacobian_mat_syms = create_jacobian_syms()
     return np.matrix(jacobian_mat_syms.evalf(subs=Q,                   # Get only the linear Jacobian
                                              chop=True,
                                              maxn=4)).astype(np.float64)[:3, :]
+
+def Jacobian(Q):
+
+    jacobian_mat_syms = create_jacobian_syms()
+    return np.matrix(jacobian_mat_syms.evalf(subs=Q,
+                                             chop=True,
+                                             maxn=4)).astype(np.float64)
 
 def IK_NR_position(guess, target):
     lr = 0.05
@@ -82,24 +89,25 @@ def IK_NR_position(guess, target):
     theta_dict = {}
     Q = guess  # Initial Guess - Joint Angles
     p_d = target
-    error=100
+    error= 100
+
     while error > 1e-2:
 
         for i in range(len(Q)):
             theta_dict[q[i]] = Q[i]
 
-        print(counter, np.rad2deg(Q))
+        print('Iteration: ' + str(counter) + '   Joint angles: ' + str(np.rad2deg(Q)))
 
         T = np.array(forward_hom_mat(Q)).astype(np.float64)  # Get transformation between base to EE
         p = T[:3, 3].reshape((3,))  # Extract Rotation matrix
 
-        J = Jacobian(theta_dict)
+        J = LinearJacobian(theta_dict)
         Q = Q + lr * np.linalg.pinv(J).dot(p_d - p)  # Update Q
         Q = np.array(Q).astype(np.float64)
         Q = Q[0]
 
         error = np.linalg.norm(p_d - p)
-        print('*', error)
+        print('current error: ', error)
         counter += 1
         print()
 

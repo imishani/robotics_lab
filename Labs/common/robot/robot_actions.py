@@ -128,7 +128,7 @@ def example_angular_action_movement(base, base_cyclic, Q=None):
             else:
                 print('Only less then 10 [deg] delta are valid.')
 
-        for joint_id in range(actuator_count.count):
+        for joint_id in range(actuator_count):
             joint_angle = action.reach_joint_angles.joint_angles.joint_angles.add()
             joint_angle.value = base_cyclic.RefreshFeedback().actuators[joint_id].position + dtheta
 
@@ -171,13 +171,13 @@ def example_cartesian_action_movement(base, base_cyclic, C=None):
     else:
         ok = False
         while not ok:
-            d_y = float(input("Enter required delta y for the end effector position"))
-            d_x = float(input("Enter required delta x for the end effector position"))
-            if abs(d_y) < 0.1 and abs(d_x) < 0.1:
+            d_y = float(input("Enter required delta y for the end effector position: "))
+            d_x = float(input("Enter required delta x for the end effector position: "))
+            if abs(d_y) < 0.2 and abs(d_x) < 0.2:
                 print('Input deltas are ok, executing')
                 ok = True
             else:
-                print('Only less then 0.1 [m] delta inputs are valid.')
+                print('Only less then 0.2 [m] delta inputs are valid.')
 
         cartesian_pose = action.reach_pose.target_pose
         cartesian_pose.x = feedback.base.tool_pose_x  # (meters)

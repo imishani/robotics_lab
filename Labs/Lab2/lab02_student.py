@@ -42,18 +42,19 @@ def dh(alpha, a, d, theta):
 
     Returns: Homogeneous DH matrix
 
-    Important note: use sympy cos/sin arguments
+    Important note: use sympy cos/sin arguments instead of math/numpy versions.
 
     """
 
     return Matrix([[, , , ],
-                 [, , , ],
-                 [, , , ],
-                 [, , , ]])
+                   [, , , ],
+                   [, , , ],
+                   [, , , ]])
 
-def FK():
+def FK(theta_list):
     """
-
+    Args:
+        theta_list: joint angle vector
     Returns:
         End effector homogeneous matrix --> Matrix((4, 4))
 
@@ -88,10 +89,10 @@ def angles_to_follow():
 
     """
     angles = { 't1': [, , , , , ],
-    't2': [, , , , , ],
-    't3': [, , , , , ],
-    't4': [, , , , , ],
-    't5': [, , , , , ]}  # [radians]
+               't2': [, , , , , ],
+               't3': [, , , , , ],
+               't4': [, , , , , ],
+               't5': [, , , , , ]}  # [radians]
 
 
     return angles

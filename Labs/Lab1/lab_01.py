@@ -51,7 +51,8 @@ def record(base_cyclic):
                 joint_list = np.vstack((joint_list, cur_joint))
                 xyz_list = np.vstack((xyz_list, cur_end_xyz))
 
-            print("Curr Gripper X {}, Y {}, Z {} \n To stop recording press Ctrl+C".format(*cur_end_xyz))
+            print("TCP position X {}, Y {}, Z {} \n To stop recording press Ctrl+C".format(*cur_end_xyz))
+            print("Robot joints q1 {}, q2 {}, q3 {}, q4 {}, q5 {}, q6 {} \n To stop recording press Ctrl+C".format(*cur_joint))
 
         except KeyboardInterrupt:
             return (joint_list, xyz_list)
@@ -97,11 +98,11 @@ if __name__ == "__main__":
             try:
                 print("Press s to start recording")
                 status = 1
-                while (1):
+                while True:
                     key = getKey()
                     if str(key) == "b's'":
                         joint_trajectory = record(base_cyclic)
-                        print('Press d to save the data')
+                        print('Press d to save the data or q to stop and quit')
                         status = status + 1
                     elif str(key) == "b'd'":
                         save()
@@ -112,7 +113,7 @@ if __name__ == "__main__":
             except:
                 print(e)
             finally:
-                print('\n done')
+                print('\nDone')
 
         if os.name != 'nt':
             termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)

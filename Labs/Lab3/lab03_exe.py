@@ -13,9 +13,15 @@ else:
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../common/robot"))
 from robot_actions import *
 from lab03_solution import *
+np.set_printoptions(precision=2, suppress=True, threshold=5)
+init_printing()
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+import utilities
 
+def round_expr(expr, num_digits):
+    return expr.xreplace({n : round(n, num_digits) for n in expr.atoms(Number)})
 
-class robotic_arm():
+class robotic_arm_lab3():
 
     def __init__(self, simplified=False):
         self.joints = 0
@@ -93,6 +99,18 @@ class robotic_arm():
     def show_transform_matrices(self):
         print('Transform Matrices are: {}'.format(self.tf_matrices_list))
 
+    def check_joint_limit(self, Q):
+        for q, lim in zip(Q, self.joint_limit):
+            if np.abs(q) > lim:
+                return False
+        return True
+
+    def gen_angles(self, limits=None):
+        if limits is None:
+            return np.array([np.random.random() * 2 * lim - lim for lim in self.joint_limit])
+        else:
+            return np.array([np.random.random() * 2 * limits - limits for lim in self.joint_limit])
+
     @staticmethod
     def TF_matrix(alpha, a, d, q):
         TF = Matrix([[cos(q), -cos(alpha) * sin(q), sin(q) * sin(alpha), a * cos(q)],
@@ -137,11 +155,12 @@ class robotic_arm():
         for i in range(len(q)):
             theta_dict[self.q[i]] = q[i]
 
-        Ja = []
+        Ja, Jl = [], []
+
         Ja.append(np.array([0, 0, 1]))
-        Jl = []
-        Pee = np.array(self.tf_matrices_list[-1][:3, 3].evalf(subs=theta_dict, chop=True, maxn=4)).astype(
-            np.float64).squeeze()
+        Pee = np.array(self.tf_matrices_list[-1][:3, 3].evalf(
+                                                    subs=theta_dict, chop=True, maxn=4)).astype(np.float64).squeeze()
+
         Jl.append(np.cross(Pee, np.array([0, 0, 1])))
         for i, T in enumerate(self.tf_matrices_list[:-2]):
             z = T[:3, 2]
@@ -155,18 +174,6 @@ class robotic_arm():
         Ja = np.array(Ja).T  # .reshape(3,-1)
         Jl = np.array(Jl).T  # .reshape(3,-1)
 
-    def check_joint_limit(self, Q):
-        for q, lim in zip(Q, self.joint_limit):
-            if np.abs(q) > lim:
-                return False
-        return True
-
-    def gen_angles(self, limits=None):
-        if limits is None:
-            return np.array([np.random.random() * 2 * lim - lim for lim in self.joint_limit])
-        else:
-            return np.array([np.random.random() * 2 * limits - limits for lim in self.joint_limit])
-    
     def forward_kinematics(self, theta_list):
         theta_dict = {}
         T_0G = self.tf_matrices_list[-1]
@@ -308,7 +315,7 @@ class robotic_arm():
         Q = np.array([np.real(angle) - 2 * np.pi if angle > np.pi else np.real(angle) for angle in Q])
         return Q
 
-    def inverse_kinematics_iterative_positionV1(self, guess, p_d):
+    def inverse_kinematics_iterative_position_old(self, guess, p_d):
 
 
         Q = guess # Initial Guess - Joint Angles
@@ -346,7 +353,7 @@ class robotic_arm():
         Q = np.array([np.real(angle) - 2 * np.pi if angle > np.pi else np.real(angle) for angle in Q])
         return Q
 
-    def inverse_kinematics_iterative_positionV2(self, guess, p_d):
+    def inverse_kinematics_iterative_position(self, guess, p_d):
 
         Q = IK_NR_position(guess, p_d)
 
@@ -355,51 +362,87 @@ class robotic_arm():
 
         return Q
 
+def move_to_angle_conf(angle_conf_eval):
+
+    args = utilities.parseConnectionArguments()
+    with utilities.DeviceConnection.createTcpConnection(args) as router:
+        # Create required services
+        base = BaseClient(router)
+        base_cyclic = BaseCyclicClient(router)
+        input("Remove any objects near the arm and press Enter")
+        for i in range(len(angle_conf_eval)):
+
+            Q = angle_conf_eval['target']
+            # Create connection to the device and get the router
+            # Example core
+            success = True
+            flag = True
+            display = True
+
+            while flag and success:
+
+                if display:
+                    key = input("Press H to move the arm  to home position\n"
+                                "Press A to move the arm to desired angular position: \n"
+                                + str(np.round(Q.squeeze(), 3))+ '\n'
+                                + "To Quit press Q\n")
+                    display = False
+
+                if str(key) == 'h' or str(key) == 'H':
+                    success &= example_move_to_home_position(base)
+                    if success:
+                        print('Successfully moved to home position')
+                        display = True
+                    else:
+                        print('Huston, we have a problem, please call the instructor')
+
+                if str(key) == 'A' or str(key) == 'a':
+                    success &= example_angular_action_movement(base, base_cyclic, Q=Q)
+                    if success:
+                        print('Successfully moved to arm to desired angular action')
+                        flag = False
+                    else:
+                        print('Huston, we have a problem, please call the instructor')
+                if str(key) == 'q' or str(key) == 'Q':
+                    break
 
 if __name__ == '__main__':
 
-    if os.name != 'nt':
-        settings = termios.tcgetattr(sys.stdin)
-    try:
-        sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-        import utilities
+    arm = robotic_arm_lab3()
+    arm.set_joints(6)
 
-        # Parse arguments
-        args = utilities.parseConnectionArguments()
+    # Create desired TCP position
+    q = np.deg2rad(np.array([0, -40, 50, 10, 20, 10]))
+    # q = arm.gen_angles(limits = np.deg2rad(10)))
 
-        with utilities.DeviceConnection.createTcpConnection(args) as router:
+    # TODO: fill here the desired tranformation matrix
+    Tsd = arm.forward_hom_mat(q)
 
+    print("tcp homogeneous transformation matrix: ")
+    pprint(round_expr(Tsd, 2))
+    print()
 
-            arm = robotic_arm()  # already initialized with dh_table
-            arm.set_joints(6)
-
-            # Create desired TCP position
-            q = np.deg2rad(np.array([0, -40, 70, 90, 70, 0]))
-            # q = arm.gen_angles(limits = np.deg2rad(10)))
-            Tsd = arm.forward_hom_mat(q)
-            print(Tsd)
-
-            fig = plt.figure()
-            ax = plt.axes(projection='3d')
-            arm.plot_arm(ax, q)
-
-            ###########################################
-            ###### Newton simplified solution #########
-            ###########################################
-
-            q0 = arm.gen_angles()
-            Tsd = np.array(Tsd).astype(np.float64)
-            qn = arm.inverse_kinematics_iterative_positionV2(guess=q0, p_d=Tsd[:3, 3])
-            # print('Original q:', np.rad2deg(q))
-            # print('Iterative IK solution:', np.rad2deg(qn))
-            print(arm.forward_hom_mat(qn))
-            arm.plot_arm(ax, qn, 'blue')
-            plt.show()
+    fig = plt.figure()
+    ax = plt.axes(projection='3d')
+    arm.plot_arm(ax, q)
+    plt.draw()
 
 
+    ###########################################
+    ###### Newton simplified solution #########
+    ###########################################
 
-    except KeyboardInterrupt:
-        pass
+    q0 = np.deg2rad(np.array([0, -10, 50, 20, 10, 5])) # arm.gen_angles()
+    Tsd = np.array(Tsd).astype(np.float64)
+    qn = arm.inverse_kinematics_iterative_position(guess=q0, p_d=Tsd[:3, 3])
+
+    # print('Iterative IK solution:', np.rad2deg(qn))
+    pprint(round_expr(arm.forward_hom_mat(qn), 2))
+    arm.plot_arm(ax, qn, 'blue')
+
+    plt.show()
+
+    move_to_angle_conf({'target': np.rad2deg(qn)})
 
 
 

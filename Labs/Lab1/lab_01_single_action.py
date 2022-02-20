@@ -34,10 +34,11 @@ if __name__ == "__main__":
             while flag and success:
 
                 if display:
+                    print('\n-----------------------------------------------')
                     key = input("Press H to move the arm  to home position\n"
                           "Press C to move the arm to desired cartesian action\n"
                           "Press A to move the arm to desired angular action\n"
-                          "To Quit press Q")
+                          "To Quit press Q\n")
                     display = False
 
                 if str(key) == 'h' or str(key) == 'H':
