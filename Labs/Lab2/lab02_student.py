@@ -18,12 +18,12 @@ def set_dh_table():
 
     """
 
-    dh_subs_dict = {alpha1: , a1: , d1: , q1: ,
-                    alpha2: , a2: , d2: , q2: ,
-                    alpha3: , a3: , d3: , q3: ,
-                    alpha4: , a4: , d4: , q4: ,
-                    alpha5: , a5: , d5: , q5: ,
-                    alpha6: , a6: , d6: , q6: }
+    dh_subs_dict = {alpha1: , a1: , d1: , q1: q1 + ,
+                    alpha2: , a2: , d2: , q2: q2 + ,
+                    alpha3: , a3: , d3: , q3: q3 + ,
+                    alpha4: , a4: , d4: , q4: q4 + ,
+                    alpha5: , a5: , d5: , q5: q5 + ,
+                    alpha6: , a6: , d6: , q6: q6 + }
 
     return dh_subs_dict
 
@@ -43,6 +43,7 @@ def dh(alpha, a, d, theta):
     Returns: Homogeneous DH matrix
 
     Important note: use sympy cos/sin arguments instead of math/numpy versions.
+    i.e: cos(theta) \ sin(theta)
 
     """
 

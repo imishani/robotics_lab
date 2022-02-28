@@ -37,13 +37,12 @@ def dh(alpha, a, d, theta):
     Returns: Homogeneous DH matrix
 
     Important note: use sympy cos/sin arguments instead of math/numpy versions.
-
+    i.e: cos(theta) \ sin(theta)
     """
     return Matrix([[cos(theta), -cos(alpha) * sin(theta), sin(theta) * sin(alpha), a * cos(theta)],
                    [sin(theta), cos(alpha) * cos(theta), -sin(alpha) * cos(theta), a * sin(theta)],
                    [0, sin(alpha), cos(alpha), d],
                    [0, 0, 0, 1]])
-
 
 def transform_matrices():
     """
@@ -107,7 +106,6 @@ def FK(theta_list):
 
     return T_0G_eval
 
-
 def xyz_rpy(A):
 
     """
@@ -133,7 +131,6 @@ def xyz_rpy(A):
     yaw = [np.array(Euler[2]).astype(np.float64)]
     return np.array([x, y, z, roll, pitch, yaw])
 
-
 def angles_to_follow():
     """
 
@@ -141,8 +138,8 @@ def angles_to_follow():
 
     """
 
-    angles = {'t1': [0, 0, 0, 0, 0, 0],  # deg
-              't2': [0, 0, 0, 0, 0, pi/2], # pi / 2, 0, 0, pi / 4, pi / 4, pi / 4
+    angles = {'t1': [0, np.deg2rad(20), np.deg2rad(50), 0, np.deg2rad(70), 0],  # deg
+              't2': [0, pi/2, 0, 0, 0, pi/2],
               't3': [0, np.deg2rad(344), np.deg2rad(75), 0, np.deg2rad(300), 0],
               't4': [np.deg2rad(7), np.deg2rad(21), np.deg2rad(150), np.deg2rad(285), np.deg2rad(340),
                      np.deg2rad(270)],

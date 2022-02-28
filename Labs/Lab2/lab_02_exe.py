@@ -109,15 +109,19 @@ def move_to_angle_conf(angle_conf_eval):
         base = BaseClient(router)
         base_cyclic = BaseCyclicClient(router)
         input("Remove any objects near the arm and press Enter")
+        input("Moving the robot to home position")
+        example_move_to_home_position(base)
+
+        quit_flag = False
         for i in range(len(angle_conf_eval)):
+
             C = angle_conf_eval['t'+ str(i + 1)]
-        # Create connection to the device and get the router
-            # Example core
+
             success = True
             flag = True
             display = True
 
-            while flag and success:
+            while flag and success and not quit_flag:
 
                 if display:
                     key = input("Press H to move the arm  to home position\n"
@@ -142,6 +146,7 @@ def move_to_angle_conf(angle_conf_eval):
                     else:
                         print('Huston, we have a problem, please call the instructor')
                 if str(key) == 'q' or str(key) == 'Q':
+                    quit_flag = True
                     break
 
 
