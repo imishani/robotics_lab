@@ -106,7 +106,7 @@ def FK(theta_list):
 
     return T_0G_eval
 
-def xyz_rpy(A):
+def xyz_euler(A):
 
     """
     Extract translation and orientation in euler angles

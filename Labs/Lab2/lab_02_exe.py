@@ -71,7 +71,7 @@ class robotic_arm_lab2():
 
         '''calculate [x,y,z,roll,pitch,yaw] '''
 
-        self.current_pos = xyz_rpy(T_0G_eval)
+        self.current_pos = xyz_euler(T_0G_eval)
 
         return self.current_pos
 
@@ -91,7 +91,7 @@ class robotic_arm_lab2():
 
         '''calculate [x,y,z,roll,pitch,yaw] '''
 
-        self.current_pos = xyz_rpy(T_0G_eval)
+        self.current_pos = xyz_euler(T_0G_eval)
 
 
         return self.current_pos

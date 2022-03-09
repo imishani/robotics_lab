@@ -18,14 +18,15 @@ def set_dh_table():
 
     """
 
-    dh_subs_dict = {alpha1: , a1: , d1: , q1: q1 + ,
-                    alpha2: , a2: , d2: , q2: q2 + ,
-                    alpha3: , a3: , d3: , q3: q3 + ,
-                    alpha4: , a4: , d4: , q4: q4 + ,
-                    alpha5: , a5: , d5: , q5: q5 + ,
-                    alpha6: , a6: , d6: , q6: q6 + }
-
-    return dh_subs_dict
+    # dh_subs_dict = {alpha1: , a1: , d1: , q1: q1 + ,
+    #                 alpha2: , a2: , d2: , q2: q2 + ,
+    #                 alpha3: , a3: , d3: , q3: q3 + ,
+    #                 alpha4: , a4: , d4: , q4: q4 + ,
+    #                 alpha5: , a5: , d5: , q5: q5 + ,
+    #                 alpha6: , a6: , d6: , q6: q6 + }
+    #
+    # return dh_subs_dict
+    pass
 
 
 def dh(alpha, a, d, theta):
@@ -47,10 +48,12 @@ def dh(alpha, a, d, theta):
 
     """
 
-    return Matrix([[, , , ],
-                   [, , , ],
-                   [, , , ],
-                   [, , , ]])
+    # return Matrix([[, , , ],
+    #                [, , , ],
+    #                [, , , ],
+    #                [, , , ]])
+
+    pass
 
 def FK(theta_list):
     """
@@ -68,14 +71,14 @@ def FK(theta_list):
     """
     pass
 
-def xyz_rpy(A):
+def xyz_euler(A):
     """
     Extract translation and orientation in euler angles
 
     Args:
         A: Homogeneous transformation --> np.array((4, 4))
 
-    Returns: x, y, z, roll, pitch, yaw --> np.array((1, 6))
+    Returns: x, y, z, thetax, thetay, thetaz --> np.array((1, 6))
 
     Important note: use numpy arrays
 
@@ -86,15 +89,16 @@ def xyz_rpy(A):
 def angles_to_follow():
     """
 
-    Returns: Dictionary of the wanted angels
+    Returns: Dictionary of the desired angels
 
     """
-    angles = { 't1': [, , , , , ],
-               't2': [, , , , , ],
-               't3': [, , , , , ],
-               't4': [, , , , , ],
-               't5': [, , , , , ]}  # [radians]
+    # angles = { 't1': [, , , , , ],
+    #            't2': [, , , , , ],
+    #            't3': [, , , , , ],
+    #            't4': [, , , , , ],
+    #            't5': [, , , , , ]}  # [radians]
+    #
+    #
+    # return angles
 
-
-    return angles
-
+    pass
