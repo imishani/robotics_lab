@@ -1,8 +1,11 @@
 # Default ignored files
 /shelf/
 /workspace.xml
+venv/*
+/venv/*
 # Datasource local storage ignored files
 /../../../../../../../../:\Users\owner\OneDrive - mail.tau.ac.il\study\robotics_lab\Robotics_Lab_new\.idea/dataSources/
 /dataSources.local.xml
 # Editor-based HTTP Client requests
 /httpRequests/
+

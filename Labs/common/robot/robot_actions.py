@@ -13,7 +13,7 @@ from kortex_api.autogen.messages import Base_pb2, BaseCyclic_pb2, Common_pb2
 
 
 # Maximum allowed waiting time during actions (in seconds)
-TIMEOUT_DURATION = 20
+TIMEOUT_DURATION = 1000
 e = """
 Communications Failed
 """
@@ -201,9 +201,9 @@ def example_cartesian_action_movement(base, base_cyclic, C=None):
     base.Unsubscribe(notification_handle)
 
     if finished:
-        print("Cartesian movement completed")
+        print("Cartesian movement completed \nCheck EVENT if the arm reached your destination")
     else:
-        print("Timeout on action notification wait")
+        print("Timeout\Abort on action notification wait")
     return finished
 
 

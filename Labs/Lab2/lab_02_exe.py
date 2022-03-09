@@ -1,13 +1,9 @@
-from sympy import *
 import os
-import numpy as np
 if os.name == 'nt':
     import msvcrt
 else:
     import tty, termios
-from kortex_api.autogen.client_stubs.BaseClientRpc import BaseClient
-from kortex_api.autogen.client_stubs.BaseCyclicClientRpc import BaseCyclicClient
-from kortex_api.autogen.messages import Base_pb2, BaseCyclic_pb2, Common_pb2
+
 import sys
 # from lab02_student import *
 from lab02_solution import *
@@ -108,9 +104,10 @@ def move_to_angle_conf(angle_conf_eval):
         # Create required services
         base = BaseClient(router)
         base_cyclic = BaseCyclicClient(router)
-        input("Remove any objects near the arm and press Enter")
+        input("Reamove any objects near the arm and press Enter")
         input("Moving the robot to home position")
         example_move_to_home_position(base)
+        print()
 
         quit_flag = False
         for i in range(len(angle_conf_eval)):
@@ -141,7 +138,7 @@ def move_to_angle_conf(angle_conf_eval):
                 if str(key) == 'A' or str(key) == 'a':
                     success &= example_cartesian_action_movement(base, base_cyclic, C=C)
                     if success:
-                        print('Successfully moved to arm to desired angular action')
+                        print('Successfully moved to arm to desired cartesian action\n\n')
                         flag = False
                     else:
                         print('Huston, we have a problem, please call the instructor')
@@ -171,7 +168,7 @@ if __name__ == '__main__':
 
     ''' Import arm modules and move to each configuration '''
     print('Evaluation of the target angle configurations:\n')
-    print('         X    Y     Z    roll    pitch   yaw')
+    print('         X    Y     Z    theta_x    theta_y   theta_z')
     for target in angle_conf_eval:
         print(str(target) + '    ' + str(angle_conf_eval[target].reshape(-1)))
     print()

@@ -125,7 +125,9 @@ def xyz_rpy(A):
     y = [np.array(A[1, -1]).astype(np.float64)]
     z = [np.array(A[2, -1]).astype(np.float64)]
     R = Rotation.from_matrix(A[:3, :3])
-    Euler = R.as_rotvec(degrees=True)
+    # Euler = R.as_rotvec(degrees=True)
+    Euler = R.as_euler('xyz', degrees=True)
+
     roll = [np.array(Euler[0]).astype(np.float64)]
     pitch = [np.array(Euler[1]).astype(np.float64)]
     yaw = [np.array(Euler[2]).astype(np.float64)]
@@ -134,15 +136,15 @@ def xyz_rpy(A):
 def angles_to_follow():
     """
 
-    Returns: Dictionary of wanted angels
+    Returns: Dictionary of desired angles
 
     """
 
     angles = {'t1': [0, np.deg2rad(20), np.deg2rad(50), 0, np.deg2rad(70), 0],  # deg
-              't2': [0, pi/2, 0, 0, 0, pi/2],
+              't2': [np.deg2rad(300), np.deg2rad(300), 0, np.deg2rad(300), np.deg2rad(300), 0],
               't3': [0, np.deg2rad(344), np.deg2rad(75), 0, np.deg2rad(300), 0],
-              't4': [np.deg2rad(7), np.deg2rad(21), np.deg2rad(150), np.deg2rad(285), np.deg2rad(340),
-                     np.deg2rad(270)],
+              't4': [np.deg2rad(7), np.deg2rad(35), np.deg2rad(0), np.deg2rad(0), np.deg2rad(0),
+                     np.deg2rad(10)],
               't5': [0, 0, 0, 0, 0, 0]}
 
     return angles
