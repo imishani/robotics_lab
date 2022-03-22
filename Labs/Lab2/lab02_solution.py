@@ -140,11 +140,10 @@ def angles_to_follow():
 
     """
 
-    angles = {'t1': [0, np.deg2rad(20), np.deg2rad(50), 0, np.deg2rad(70), 0],  # deg
+    angles = {'t1': [0,-pi /7, pi /7, 0, 0, pi/7],
               't2': [np.deg2rad(300), np.deg2rad(300), 0, np.deg2rad(300), np.deg2rad(300), 0],
-              't3': [0, np.deg2rad(344), np.deg2rad(75), 0, np.deg2rad(300), 0],
-              't4': [np.deg2rad(7), np.deg2rad(35), np.deg2rad(0), np.deg2rad(0), np.deg2rad(0),
-                     np.deg2rad(10)],
+              't3': [0, np.deg2rad(340), np.deg2rad(75), 0, np.deg2rad(300), 0],
+              't4': [pi / 10, pi / 10, pi / 10, pi / 10, pi / 10, pi / 10],
               't5': [0, 0, 0, 0, 0, 0]}
 
     return angles

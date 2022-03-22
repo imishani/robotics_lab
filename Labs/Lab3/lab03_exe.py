@@ -1,8 +1,6 @@
-import numpy as np
-from sympy import *
 from scipy.linalg import logm
 import matplotlib.pyplot as plt
-from scipy.spatial.transform import Rotation
+import matplotlib
 import sys, os
 
 if os.name == 'nt':
@@ -412,21 +410,21 @@ if __name__ == '__main__':
     arm.set_joints(6)
 
     # Create desired TCP position
-    q = np.deg2rad(np.array([0, -40, 50, 10, 20, 10]))
+    q = np.deg2rad(np.array([39, -40, 50, 10, 20, 10]))
     # q = arm.gen_angles(limits = np.deg2rad(10)))
 
-    # TODO: fill here the desired tranformation matrix
+    # TODO: fill here the desired transformation matrix
     Tsd = arm.forward_hom_mat(q)
 
     print("tcp homogeneous transformation matrix: ")
     pprint(round_expr(Tsd, 2))
     print()
 
-    fig = plt.figure()
+    fig = plt.figure(0)
     ax = plt.axes(projection='3d')
     arm.plot_arm(ax, q)
-    plt.draw()
-
+    print("\nClose the figure if you want to continue\n")
+    plt.show()
 
     ###########################################
     ###### Newton simplified solution #########
@@ -438,8 +436,11 @@ if __name__ == '__main__':
 
     # print('Iterative IK solution:', np.rad2deg(qn))
     pprint(round_expr(arm.forward_hom_mat(qn), 2))
+    fig = plt.figure(0)
+    ax = plt.axes(projection='3d')
+    arm.plot_arm(ax, q)
     arm.plot_arm(ax, qn, 'blue')
-
+    print("\nClose the figure if you want to continue\n")
     plt.show()
 
     move_to_angle_conf({'target': np.rad2deg(qn)})

@@ -104,7 +104,7 @@ def move_to_angle_conf(angle_conf_eval):
         # Create required services
         base = BaseClient(router)
         base_cyclic = BaseCyclicClient(router)
-        input("Reamove any objects near the arm and press Enter")
+        input("Remove any objects near the arm and press Enter")
         input("Moving the robot to home position")
         example_move_to_home_position(base)
         print()

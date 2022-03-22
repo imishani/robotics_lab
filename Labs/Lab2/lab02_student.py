@@ -26,15 +26,12 @@ def set_dh_table():
     #                 alpha6: , a6: , d6: , q6: q6 + }
     #
     # return dh_subs_dict
+
     pass
 
 
 def dh(alpha, a, d, theta):
     """
-    Returns:
-
-
-
     Args:
         alpha: torsion angle
         a: distance
@@ -56,19 +53,36 @@ def dh(alpha, a, d, theta):
     pass
 
 def FK(theta_list):
+
     """
     Args:
-        theta_list: joint angle vector
+        theta_list: joint angle vector ---> list [1,6]
     Returns:
         End effector homogeneous matrix --> Matrix((4, 4))
 
-    Hint 1:
-            not like matrix multiplication in numpy where you should use "np.malmul" or "@" or "np.dot",
-            here you need to use the simple "*" sign.
-    Hint 2:
-            Use the above functions you just wrote.
-
+    Hints:
+        - we have added a sympy implementation with missing parts, u dont have to use the same method.
+        - chain 'Tes' to T_06 at the end.
     """
+
+    # T_01, T_12, T_23, T_34, T_45, T_56 = TODO
+    # Tes = Matrix([[0, -1, 0, 0], [1, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])  # mandatory
+    # T = T_01 * T_12 * T_23 * T_34 * T_45 * T_56 * Tes
+
+    ''' fill angles to dict for sympy calculations'''
+
+    # theta_dict = {}
+    # for i in range(len(theta_list)):
+    #     theta_dict[q[i]] = theta_list[i]
+
+    ''' 
+    homogeneous transformation matrix from base_link to end_effector [type: numeric matrix] 
+    because we are using sympy, we have to use evalf.
+    '''
+    # T_0G_eval = T.evalf(subs=theta_dict, chop=True, maxn=4)
+
+    # return T_0G_eval
+
     pass
 
 def xyz_euler(A):
