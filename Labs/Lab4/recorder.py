@@ -34,6 +34,7 @@ def record(base_cyclic):
     joint_list = None
     xyz_list = None
     flag = True
+    time_flag = False
     curr_err = 10
     tol = 1e-2
     while flag == True:
@@ -59,7 +60,13 @@ def record(base_cyclic):
             print(curr_err)
             if (curr_err < tol) and (xyz_list.shape[0] > 10):
                 # flag = False
-                return (joint_list, xyz_list)
+                if not time_flag:
+                    time_flag = True
+                    timer = time.time()
+                if time.time() - timer > 4.:
+                    return (joint_list, xyz_list)
+            else:
+                time_flag = False
 
         except KeyboardInterrupt:
             return (joint_list, xyz_list)
