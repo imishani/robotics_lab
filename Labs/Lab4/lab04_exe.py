@@ -46,7 +46,7 @@ def trajectory_task(base, goals, Tf=3., N=5):
         waypointsDef = [tuple(traj_gen_task(x_s, np.array(list(x_g)), ti, Tf)[0]) for ti in t]
         waypoints = Base_pb2.WaypointList()
         waypoints.duration = 0.0
-        waypoints.use_optimal_blending = False
+        waypoints.use_optimal_blending = True
         prog_bar = tqdm(waypointsDef)
         index = 0
         for waypointDef in prog_bar:
@@ -71,24 +71,11 @@ def trajectory_task(base, goals, Tf=3., N=5):
             base.Unsubscribe(notification_handle)
 
             if finished:
-                print("Cartesian trajectory with no optimization completed ")
 
-                e_opt = threading.Event()
-                notification_handle_opt = base.OnNotificationActionTopic(check_for_end_or_abort(e_opt),
-                                                                         Base_pb2.NotificationOptions())
-
-                waypoints.use_optimal_blending = True
-                base.ExecuteWaypointTrajectory(waypoints)
-
-                print("Waiting for trajectory to finish ...")
-                finished_opt = e_opt.wait(TIMEOUT_DURATION)
-                base.Unsubscribe(notification_handle_opt)
-
-                if (finished_opt):
-                    print("Cartesian trajectory with optimization completed, Path num: " + str(point_num) )
-                    point_num += 1
-                    if point_num == 4:
-                        ClosingGripperCommands(base, 0.7)
+                print("Cartesian trajectory with optimization completed, Path num: " + str(point_num) )
+                point_num += 1
+                if point_num == 4:
+                    ClosingGripperCommands(base, 0.7)
 
                 else:
                     print("Timeout on action notification wait for optimized trajectory")
