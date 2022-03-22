@@ -34,6 +34,7 @@ def record(base_cyclic):
     joint_list = None
     xyz_list = None
     flag = True
+    time_flag = False
     curr_err = 10
     tol = 5e-3
     timer = time.time()
@@ -60,9 +61,13 @@ def record(base_cyclic):
             print("Curr Joints Q1 {}, Q2 {}, Q3 {}, Q4 {},  Q5 {} , Q6 {} \n To stop recording press Ctrl+C\n".format(*cur_joint))
             print()
             if (curr_err < tol) and (xyz_list.shape[0] > 10):
-                # flag = False
-                if time.time() - timer > 50.0:
+                if not time_flag:
+                    time_flag = True
+                    timer = time.time()
+                if time.time() - timer > 4.:
                     return (joint_list, xyz_list)
+            else:
+                time_flag = False
 
         except KeyboardInterrupt:
             return (joint_list, xyz_list)
