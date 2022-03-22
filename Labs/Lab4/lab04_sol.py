@@ -40,12 +40,10 @@ def generate_x_goals_list():
     Returns: list of
 
     """
-    kTheta_x = 90.6
-    kTheta_y = -1.0
-    kTheta_z = 150.0
-    x_ = np.array([[0.439, 0.194, 0.448, kTheta_x, kTheta_y, kTheta_z],
-                   [0.200, 0.150, 0.400, kTheta_x, kTheta_y, kTheta_z],
-                   [0.350, 0.050, 0.300, kTheta_x, kTheta_y, kTheta_z]])
+    x_ = np.array([[0.44, 0.187, 0.419, 96, 1, 150],
+                   [0.369, -0.015, 0.21, 178, 3, 177],
+                   [0.372, 0.014, 0.01, 178, 4.5, 175],
+                   [0.44, 0.187, 0.419, 96, 1, 150]])
     return x_
 
 

@@ -32,6 +32,7 @@ def trajectory_task(base, goals, Tf=3., N=5):
     pro = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                            shell=True, stdin=subprocess.PIPE)
     time.sleep(1)
+    point_num = 1
     for x_g in waypointsDefinition:    # waypointsDefinition
         x_s = np.array([base_cyclic.RefreshFeedback().base.tool_pose_x,
                base_cyclic.RefreshFeedback().base.tool_pose_y,
@@ -84,7 +85,11 @@ def trajectory_task(base, goals, Tf=3., N=5):
                 base.Unsubscribe(notification_handle_opt)
 
                 if (finished_opt):
-                    print("Cartesian trajectory with optimization completed ")
+                    print("Cartesian trajectory with optimization completed, Path num: " + str(point_num) )
+                    point_num += 1
+                    if point_num == 4:
+                        ClosingGripperCommands(base, 0.7)
+
                 else:
                     print("Timeout on action notification wait for optimized trajectory")
                 # finished_ = finished_opt
@@ -110,7 +115,7 @@ def trajectory_config(base, angles, Tf=3., N=3):
     pro = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                            shell=True, stdin=subprocess.PIPE)
     time.sleep(1.)
-
+    point_num = 1
     for q_g in jointPoses:
         q_g = np.array(q_g)
         q_s = np.zeros(len(base_cyclic.RefreshFeedback().actuators))
@@ -156,7 +161,10 @@ def trajectory_config(base, angles, Tf=3., N=3):
             base.Unsubscribe(notification_handle)
 
             if finished:
-                print("Angular movement completed")
+                print("Angular movement completed,   Path num: " + str(point_num))
+                point_num += 1
+                if point_num == 4:
+                    ClosingGripperCommands(base, 0.7)
             else:
                 print("Timeout on action notification wait")
         else:
@@ -204,7 +212,6 @@ if __name__ == "__main__":
                     display = False
 
                 if success:
-                    print('Successfully moved')
                     display = True
                 else:
                     print('Huston, we have a problem, please call the instructor')
@@ -239,6 +246,7 @@ if __name__ == "__main__":
                     waypoints = generate_x_goals_list()
                     waypoints = np.hstack((waypoints[:, :3], np.zeros((waypoints.shape[0], 1)), waypoints[:, 3:]))
                     waypoints = tuple(tuple(row) for row in waypoints)
+                    OpeningGripperCommands(base)
 
                     success &= trajectory_task(base, waypoints)
                     if success:
@@ -252,13 +260,15 @@ if __name__ == "__main__":
                     waypoints = tuple(tuple(row) for row in waypoints)
 
                     success &= move_to_home_fixed(base)
+                    OpeningGripperCommands(base)
                     success &= trajectory_config(base, waypoints)
                     if success:
                         print('Successfully moved to arm to desired angular action')
                         display = True
                     else:
                         print('Huston, we have a problem, please call the instructor')
-
+                if str(key) == 'q' or str(key) == 'Q':
+                    break
 
 
 

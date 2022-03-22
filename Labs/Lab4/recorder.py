@@ -35,7 +35,8 @@ def record(base_cyclic):
     xyz_list = None
     flag = True
     curr_err = 10
-    tol = 1e-2
+    tol = 5e-3
+    timer = time.time()
     while flag == True:
         try:
             for i in range(len(base_cyclic.RefreshFeedback().actuators)):
@@ -55,11 +56,13 @@ def record(base_cyclic):
                 curr_err = np.linalg.norm((xyz_list[-1,:]-xyz_list[-2,:], xyz_list[-1,:]-xyz_list[-2,:]))
                 curr_err += np.linalg.norm((joint_list[-1, :] - joint_list[-2, :], joint_list[-1, :] - joint_list[-2, :]))
 
-            print("Curr Gripper X {}, Y {}, Z {} \n To stop recording press Ctrl+C".format(*cur_end_xyz))
-            print(curr_err)
+            print("Curr Gripper X {}, Y {}, Z {}".format(*cur_end_xyz))
+            print("Curr Joints Q1 {}, Q2 {}, Q3 {}, Q4 {},  Q5 {} , Q6 {} \n To stop recording press Ctrl+C\n".format(*cur_joint))
+            print()
             if (curr_err < tol) and (xyz_list.shape[0] > 10):
                 # flag = False
-                return (joint_list, xyz_list)
+                if time.time() - timer > 50.0:
+                    return (joint_list, xyz_list)
 
         except KeyboardInterrupt:
             return (joint_list, xyz_list)
