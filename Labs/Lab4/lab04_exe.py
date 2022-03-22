@@ -6,6 +6,7 @@ import threading
 import signal
 import subprocess
 import sys, select, os
+from tqdm.auto import tqdm
 if os.name == 'nt':
   import msvcrt
 else:
@@ -31,7 +32,7 @@ def trajectory_task(base, goals, Tf=3., N=5):
     pro = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                            shell=True, stdin=subprocess.PIPE)
     time.sleep(1)
-    for x_g in waypointsDefinition:
+    for x_g in waypointsDefinition:    # waypointsDefinition
         x_s = np.array([base_cyclic.RefreshFeedback().base.tool_pose_x,
                base_cyclic.RefreshFeedback().base.tool_pose_y,
                base_cyclic.RefreshFeedback().base.tool_pose_z,
@@ -43,16 +44,17 @@ def trajectory_task(base, goals, Tf=3., N=5):
         t = np.linspace(0, Tf, N)
         waypointsDef = [tuple(traj_gen_task(x_s, np.array(list(x_g)), ti, Tf)[0]) for ti in t]
         waypoints = Base_pb2.WaypointList()
-
         waypoints.duration = 0.0
         waypoints.use_optimal_blending = False
-
+        prog_bar = tqdm(waypointsDef)
         index = 0
-        for waypointDef in waypointsDef:
+        for waypointDef in prog_bar:
             waypoint = waypoints.waypoints.add()
             waypoint.name = "waypoint_" + str(index)
             waypoint.cartesian_waypoint.CopyFrom(populateCartesianCoordinate(waypointDef))
             index = index + 1
+            prog_bar.set_description(f'Added point {index} to trajectory of x goal {x_g}')
+            prog_bar.refresh()
 
             # Verify validity of waypoints
         result = base.ValidateWaypointList(waypoints);
