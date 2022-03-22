@@ -44,8 +44,8 @@ def generate_x_goals_list():
     kTheta_y = -1.0
     kTheta_z = 150.0
     x_ = np.array([[0.439, 0.194, 0.448, kTheta_x, kTheta_y, kTheta_z],
-     [0.200, 0.150, 0.400, kTheta_x, kTheta_y, kTheta_z],
-     [0.350, 0.050, 0.300, kTheta_x, kTheta_y, kTheta_z]])
+                   [0.200, 0.150, 0.400, kTheta_x, kTheta_y, kTheta_z],
+                   [0.350, 0.050, 0.300, kTheta_x, kTheta_y, kTheta_z]])
     return x_
 
 
@@ -55,7 +55,9 @@ def generate_q_goals_list():
     Returns: list of
 
     """
-    jointPoses = np.array([[100.5, 345, 78, 345, 305, 12],
-                  [15.5, 330, 70, 345, 305, 12]])
+    jointPoses = np.array([[0.1, 343, 75, 354, 300, 0.1],
+                           [7.5, 337, 80, 271, 287, 10],
+                           [7.5, 313, 97, 272, 329, 10],
+                           [0.1, 343, 75, 354, 300, 0.1]])
 
     return jointPoses

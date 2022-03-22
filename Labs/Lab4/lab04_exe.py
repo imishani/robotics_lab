@@ -16,7 +16,7 @@ from kortex_api.autogen.client_stubs.BaseCyclicClientRpc import BaseCyclicClient
 from kortex_api.autogen.messages import Base_pb2, BaseCyclic_pb2, Common_pb2
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../common/robot"))
 from robot_actions import *
-from lab04_student import *
+from lab04_sol import *
 
 
 def trajectory_task(base, goals, Tf=3., N=5):
@@ -191,12 +191,13 @@ if __name__ == "__main__":
             while flag and success:
 
                 if display:
+                    print('\n===================================================\n')
                     key = input("Press H to move the arm  to home position\n"
                                 "Press G to close the gripper\n"
                                 "Press O to open the gripper\n"
                                 "Press C to follow a trajectory on task-space\n"
                                 "Press A to follow a trajectory on configuration space\n"
-                                "To Quit press Q")
+                                "To Quit press Q\n")
                     print(str(key))
                     display = False
 
