@@ -4,6 +4,7 @@ import numpy as np
 import math
 import modern_robotics
 import transformations
+from scipy.spatial.transform import Rotation as R
 
 class VisualServoing(object):
     def __init__(self):
@@ -28,8 +29,9 @@ class PBVS(VisualServoing):
                 t_input, 3x1 vector
                 R_input, 4x1 vector, quaternion
         '''
+
         self._target_feature_t = np.array(t_input).flatten()
-        self._target_feature_R = transformations.quaternion_matrix(R_input)[0:3, 0:3]
+        self._target_feature_R = R.from_rotvec(R_input).as_matrix()
         self._target_features_set = True
 
         print("\n")
@@ -80,7 +82,7 @@ class PBVS(VisualServoing):
         '''
 
         t_curr = np.array(t_input).flatten()
-        R_curr = transformations.quaternion_matrix(R_input)[0:3, 0:3]
+        R_curr = R.from_rotvec(R_input).as_matrix()
 
         # see paragraph above Eq.13
         # of Chaumette, Francois, and Seth Hutchinson. "Visual servo control. I. Basic approaches."
@@ -108,7 +110,7 @@ class PBVS(VisualServoing):
         '''
 
         t_curr = np.array(t_input).flatten()
-        R_curr = transformations.quaternion_matrix(R_input)[0:3, 0:3]
+        R_curr = R.from_rotvec(R_input).as_matrix()
 
         R_del = np.dot(self._target_feature_R, R_curr.T)
         R_del_homo = np.vstack((np.hstack((R_del, np.zeros((3, 1)))), np.array([0, 0, 0, 1])))
@@ -153,7 +155,7 @@ class PBVS(VisualServoing):
         '''
 
         t_curr = np.array(t_input).flatten()
-        R_curr = transformations.quaternion_matrix(R_input)[0:3, 0:3]
+        R_curr = R.from_rotvec(R_input).as_matrix()
 
         # see paragraph above Eq.13
         # of Chaumette, Francois, and Seth Hutchinson. "Visual servo control. I. Basic approaches."
@@ -182,7 +184,7 @@ class PBVS(VisualServoing):
         '''
 
         # t_curr = np.array(t_input).flatten()
-        R_curr = transformations.quaternion_matrix(R_input)[0:3, 0:3]
+        R_curr = R.from_rotvec(R_input).as_matrix()
 
         R_del = np.dot(self._target_feature_R, R_curr.T)
         R_del_homo = np.vstack((np.hstack((R_del, np.zeros((3, 1)))), np.array([0, 0, 0, 1])))

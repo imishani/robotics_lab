@@ -12,12 +12,12 @@ import numpy as np
 import cv2
 import cv2.aruco as aruco
 import glob
-
+PATH = 'C:/Users/admin\Documents/robotics_lab/Labs/common/Aruco_Tracker-master/calib_images/tests/*.jpg'
 
 class aruco_track():
 
-    def __init__(self, channel=0, cbrow=6, cbcol=9, path='calib_images/tests/*.jpg', shape=aruco.DICT_4X4_250):
-        self.cap = cv2.VideoCapture(channel)
+    def __init__(self, channel=1, cbrow=6, cbcol=9, path=PATH, shape=aruco.DICT_4X4_250):
+        self.cap = cv2.VideoCapture(channel,cv2.CAP_DSHOW)
         self.cbrow = cbrow
         self.cbcol = cbcol
         self.path = path
