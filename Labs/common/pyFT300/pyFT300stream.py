@@ -20,7 +20,7 @@ MinimalModbus: https://pypi.org/project/MinimalModbus/
 ######################
 
 import time
-from math import *
+# from math import *
 import serial
 import minimalmodbus as mm
 import io
@@ -31,7 +31,7 @@ import libscrc
 ######################
 class FT300Sensor():
 
-  def __init__(self, PORTNAME='COM7'):
+  def __init__(self, PORTNAME='COM3'):
     #############################
     # Serial connection parameters
     #############################
@@ -41,7 +41,7 @@ class FT300Sensor():
     self.BYTESIZE = 8
     self.PARITY = "N"
     self.STOPBITS = 1
-    self.TIMEOUT = 1
+    self.TIMEOUT = 0.5
 
     self.PORTNAME = PORTNAME
 
@@ -108,7 +108,6 @@ class FT300Sensor():
     return checkResult
 
   def init_connection(self):
-
     try:
       ############################
       # Desactivate streaming mode
@@ -216,12 +215,11 @@ class FT300Sensor():
       # Number of received messages
       nbrMessages = 0
       # Data rate frequency in Hz
-      frequency = 0
+      frequency = 2
       # startTime = time.time()
 
       # Read serial message
       ####################
-
       data = self.ser.read_until(self.STARTBYTES)
       # convert from byte to bytearray
       dataArray = bytearray(data)
