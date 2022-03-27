@@ -16,10 +16,22 @@ def Jacobian(Q):
     '''
 
     Args:
-        Q:
+        Q: joint configuration list [1,6]
 
     Returns:
+        Full Jacobian matrix [6,6]
+    '''
 
+    pass
+
+def LinearJacobian(Q):
+    '''
+
+    Args:
+        Q: joint configuration list [1,6]
+
+    Returns:
+        Linear part of the Jacobian matrix [3,6]
     '''
 
     pass
@@ -32,6 +44,6 @@ def IK_NR_position(guess, target):
         target: task configuration tcp position [1,3] {x,y,z}
 
     Returns:
-
+        Q* - joint configuration angles [1, 6]
     '''
     pass
