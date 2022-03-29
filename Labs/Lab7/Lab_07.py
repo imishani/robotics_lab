@@ -19,6 +19,7 @@ else:
 from kortex_api.autogen.client_stubs.BaseClientRpc import BaseClient
 from kortex_api.autogen.client_stubs.BaseCyclicClientRpc import BaseCyclicClient
 from kortex_api.autogen.messages import Base_pb2, BaseCyclic_pb2, Common_pb2
+from scipy.spatial.transform import Rotation as R
 
 if __name__ == '__main__':
 
@@ -53,6 +54,7 @@ if __name__ == '__main__':
                 track_transform = input('Press Enter to the target frame ([tag_0])\n')
                 t_target, R_target = tracker.track()
                 t_target, R_target = t_target.squeeze(), R_target.squeeze()
+                R_target = R.from_rotvec(R_target).as_quat()
             except:
                 print('Error! Cannot find [tag_0] to [desired_camera_frame] transform')
                 sys.exit(0)
@@ -66,6 +68,7 @@ if __name__ == '__main__':
                 try:
                     t_curr, R_curr = tracker.track()
                     t_curr, R_curr = t_curr.squeeze(), R_curr.squeeze()
+                    R_curr = R.from_rotvec(R_curr).as_quat()
                 except:
                     print('Error! Cannot find [tag_0] to [desired_camera_frame] transform')
                     break
@@ -74,7 +77,7 @@ if __name__ == '__main__':
                 vel_cam = controller.caculate_vel(t_curr, R_curr)
 
                 vel_body = kinova_vs.body_frame_twist(vel_cam, base_cyclic)
-                kinova_vs.set_joint_vel(vel_body,base, base_cyclic)
+                kinova_vs.set_joint_vel(vel_body, base, base_cyclic)
 
                 # if np.linalg.norm(vel_body) < 10:
                 #     print("Stopping the robot")

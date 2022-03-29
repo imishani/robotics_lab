@@ -56,13 +56,11 @@ class KinovaVS(object):
                  feedback.base.tool_pose_y,
                  feedback.base.tool_pose_z]
 
-            r = Rotation.from_euler('xyz', [feedback.base.tool_pose_theta_x,
-                                            feedback.base.tool_pose_theta_y,
-                                            feedback.base.tool_pose_theta_z], degrees=False)
-            R = r.as_matrix()
+            r = Rotation.from_euler('xyz', [np.deg2rad(feedback.base.tool_pose_theta_x),
+                                            np.deg2rad(feedback.base.tool_pose_theta_y),
+                                            np.deg2rad(feedback.base.tool_pose_theta_z)], degrees=False)
 
-            self._T_bh = modern_robotics.RpToTrans(R[:3, :3],
-                                                   t)  # Converts a rotation matrix and a position vector into homogeneous transformation matrix
+            self._T_bh = modern_robotics.RpToTrans(r.as_matrix()[:3, :3], t)
             self._Ad_bh = modern_robotics.Adjoint(self._T_bh)
         except :
             print('Warning! Cant get transformation from gripper to base.')
@@ -108,16 +106,13 @@ class KinovaVS(object):
 
         joint_vels = np.dot(np.linalg.pinv(Jacobian(Q)), vel_b)
         joint_vels = np.array(joint_vels).reshape(-1, )
-        #
-        # joints = dict(zip(self._arm.joint_names(), joint_vels))
-        #
+
         print ("Joint Vel Command:{}".format(joint_vels))
-        #
-        # self._arm.set_joint_velocities(joints)
 
-        self.example_twist_command(joint_vels,base) # dont need to transform to each joint velocity
+        self.set_twist_command(joint_vels, base)
 
-    def example_twist_command(self,vel, base):
+
+    def set_twist_command(self,vel, base):
 
         command = Base_pb2.TwistCommand()
 
@@ -134,12 +129,6 @@ class KinovaVS(object):
 
         base.SendTwistCommand(command)
 
-        # # Let time for twist to be executed
         time.sleep(0.1)
-        #
-        # print("Stopping the robot...")
-        # self.base.Stop()
-        # time.sleep(1)
-        #
-        # return True
+
 
