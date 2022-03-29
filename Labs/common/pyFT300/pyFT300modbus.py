@@ -18,7 +18,7 @@ MinimalModbus: https://pypi.org/project/MinimalModbus/
 #Libraries importation
 import minimalmodbus as mm
 import time
-from math import *
+# from math import *
 import serial
 
 ######################
@@ -30,7 +30,7 @@ BAUDRATE=19200
 BYTESIZE=8
 PARITY="N"
 STOPBITS=1
-TIMEOUT=0.2
+TIMEOUT=2.
 
 #Change portname according the port on which is connected the FT300
 
@@ -45,7 +45,7 @@ TIMEOUT=0.2
 #Check the name of the port using robotiq user interface. It should be something
 #like: COM12
 
-PORTNAME="COM7"
+PORTNAME="COM3"
 
 SLAVEADDRESS=9
 

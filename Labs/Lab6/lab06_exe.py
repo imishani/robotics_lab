@@ -1,4 +1,7 @@
+import time
+
 from sympy import *
+# import sympy
 import os
 import numpy as np
 if os.name == 'nt':
@@ -16,6 +19,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../Lab1/"))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../common/pyFT300"))
 from pyFT300stream import *
+from FT300_mishani import *
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../common/robot"))
 from robot_actions import *
 import utilities
@@ -212,18 +216,26 @@ def static_load(base_cyclic, ft):
     theta_dict = {}
     cur_joint = np.zeros(len(base_cyclic.RefreshFeedback().actuators))
     cur_torque = np.zeros(len(base_cyclic.RefreshFeedback().actuators))
+    # ft = FT300Sensor()
+    # ft.init_connection()
+    # while True:
+    #     F = ft.get_reading()
+    #     print(F)
+    ft = ft_sens()
 
     while True:
         for i in range(len(base_cyclic.RefreshFeedback().actuators)):
             cur_joint[i] = base_cyclic.RefreshFeedback().actuators[i].position
             cur_torque[i] = base_cyclic.RefreshFeedback().actuators[i].torque
-            theta_dict.update({'q' + str(i + 1): cur_joint[i]})
-            J = np.matrix(arm.jacobian_mat.evalf(subs=theta_dict, chop=True, maxn=10)).astype(np.float64)
-            F = ft.get_reading()  # Fx,Fy,Fz, Mx,My,Mz
-            tau = -J.T.dot(F)  # estimated
-            error = tau - cur_torque
-            print("cur_torque: " + str(cur_torque.tolist()) )
-            print("cur_tau: " + str(cur_torque.tolist()) )
+            theta_dict.update({'q' + str(i + 1): np.deg2rad(cur_joint[i])})
+        J = np.matrix(arm.jacobian_mat.evalf(subs=theta_dict, chop=True, maxn=10)).astype(np.float64)
+        F = ft.get_forces()
+        # F = ft.get_reading()  # Fx,Fy,Fz, Mx,My,Mz
+        tau = -J.T.dot(F)  # estimated
+        error = tau - cur_torque
+        print("F: " + str(F))
+        print("cur_torque: " + str(cur_torque.tolist()))
+        print("cur_tau: " + str(tau.tolist()))
 
 def dynamic_test(base, base_cyclic):
     success = True
@@ -298,20 +310,27 @@ if __name__ == "__main__":
             d1, d2, d3, d4, d5, d6 = symbols('d1:7')
             q1, q2, q3, q4, q5, q6 = symbols('q1:7')
 
-            dh_subs_dict = {alpha1: pi / 2, a1: 0, d1: 128.3 + 115.0, q1: q1,
-                            alpha2: pi, a2: 280, d2: 30, q2: q2 + pi / 2,
-                            alpha3: pi / 2, a3: 0, d3: 20, q3: q3 + pi / 2,
-                            alpha4: pi / 2, a4: 0, d4: 140.0 + 105.0, q4: q4 + pi / 2,
-                            alpha5: pi / 2, a5: 0, d5: 28.5 + 28.5, q5: q5 + pi,
-                            alpha6: 0, a6: 0, d6: 105.0 + 130.0, q6: q6 + pi / 2}
+            # dh_subs_dict = {alpha1: pi / 2, a1: 0, d1: 128.3 + 115.0, q1: q1,
+            #                 alpha2: pi, a2: 280, d2: 30, q2: q2 + pi / 2,
+            #                 alpha3: pi / 2, a3: 0, d3: 20, q3: q3 + pi / 2,
+            #                 alpha4: pi / 2, a4: 0, d4: 140.0 + 105.0, q4: q4 + pi / 2,
+            #                 alpha5: pi / 2, a5: 0, d5: 28.5 + 28.5, q5: q5 + pi,
+            #                 alpha6: 0, a6: 0, d6: 105.0 + 130.0, q6: q6 + pi / 2}
+            dh_subs_dict = {alpha1: pi / 2, a1: 0, d1: 0.1283 + 0.115, q1: q1,
+                            alpha2: pi, a2: 0.28, d2: 0.030, q2: q2 + pi / 2,
+                            alpha3: pi / 2, a3: 0, d3: 0.020, q3: q3 + pi / 2,
+                            alpha4: pi / 2, a4: 0, d4: 0.140 + 0.105, q4: q4 + pi / 2,
+                            alpha5: pi / 2, a5: 0, d5: 0.0285 + 0.0285, q5: q5 + pi,
+                            alpha6: 0, a6: 0, d6: 0.1050 + 0.130, q6: q6 + pi / 2}
 
             arm.set_dh_param_dict(dh_subs_dict)
             # Init Jacobian
             arm.jacobian_func()
 
             # init ft
-            ft = FT300Sensor()
-            ft.init_connection()
+            ft=False
+            # ft = FT300Sensor()
+            # ft.init_connection()
             # while True:
             #     cur_ft = ft.get_reading()
             #     print(cur_ft)
