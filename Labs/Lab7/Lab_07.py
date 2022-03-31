@@ -44,7 +44,7 @@ if __name__ == '__main__':
             base_cyclic = BaseCyclicClient(router)
 
             controller = PBVS()
-            controller._translation_only = True
+            controller._translation_only = False
             tracker = aruco_track()
             # set target pose
 
@@ -63,20 +63,20 @@ if __name__ == '__main__':
 
             # set up the kinova
 
-            while (True):  # TODO: add safety conditon
+            while True:  # TODO: add safety conditon
                 # get pose estimation from tracker node
                 try:
                     t_curr, R_curr = tracker.track()
                     t_curr, R_curr = t_curr.squeeze(), R_curr.squeeze()
                     R_curr = R.from_rotvec(R_curr).as_quat()
+                    vel_cam = controller.caculate_vel(t_curr, R_curr)
+
+                    vel_body = kinova_vs.body_frame_twist(vel_cam, base_cyclic)
                 except:
                     print('Error! Cannot find [tag_0] to [desired_camera_frame] transform')
-                    break
-
+                    vel_body = [0,0,0,0,0,0]
                 # perform visual servoing
-                vel_cam = controller.caculate_vel(t_curr, R_curr)
 
-                vel_body = kinova_vs.body_frame_twist(vel_cam, base_cyclic)
                 kinova_vs.set_joint_vel(vel_body, base, base_cyclic)
 
                 # if np.linalg.norm(vel_body) < 10:

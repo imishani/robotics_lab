@@ -43,7 +43,7 @@ def traj_gen_task(x_s, x_g, t, Tf):
 def generate_x_goals_list():
     """
 
-    Returns: Desired end-effector goals along the planned path --> np.array((N, 6))
+    Returns: Desired end-effector goals along the planned path --> np.array((4, 6))
 
     Notes:  1. Position units [m]
             2. Orientation units [degrees]
@@ -55,7 +55,7 @@ def generate_x_goals_list():
 def generate_q_goals_list():
     """
 
-    Returns: Desired configuration (angle) goals along the planned path --> --> np.array((N, 6))
+    Returns: Desired configuration (angle) goals along the planned path --> --> np.array((4, 6))
 
     Notes: Orientation units [degrees]
 

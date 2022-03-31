@@ -2,7 +2,7 @@
 
 import numpy as np
 import math
-import tf.transformations
+import transformations
 import modern_robotics
 
 
@@ -27,7 +27,7 @@ class PBVS(VisualServoing):
                 R_input, 4x1 vector, quaternion
         '''
         self._target_feature_t = np.array(t_input).flatten()
-        self._target_feature_R = tf.transformations.quaternion_matrix(R_input)[0:3, 0:3]
+        self._target_feature_R = transformations.quaternion_matrix(R_input)[0:3, 0:3]
         self._target_features_set = True
 
         print("\n")
@@ -45,14 +45,14 @@ class PBVS(VisualServoing):
         '''
 
         t_curr = np.array(t_input).flatten()
-        R_curr = tf.transformations.quaternion_matrix(R_input)[0:3, 0:3]
+        R_curr = transformations.quaternion_matrix(R_input)[0:3, 0:3]
 
         # see paragraph above Eq.13
         # of Chaumette, Francois, and Seth Hutchinson. "Visual servo control. I. Basic approaches."
         t_del = t_curr - self._target_feature_t
         R_del = np.dot(self._target_feature_R, R_curr.T)
         R_del_homo = np.vstack((np.hstack((R_del, np.zeros((3, 1)))), np.array([0, 0, 0, 1])))
-        (theta, u, _) = tf.transformations.rotation_from_matrix(R_del_homo)
+        (theta, u, _) = transformations.rotation_from_matrix(R_del_homo)
 
         if self._translation_only:
             error = np.hstack((t_del, np.zeros(3)))
@@ -73,12 +73,12 @@ class PBVS(VisualServoing):
         '''
 
         t_curr = np.array(t_input).flatten()
-        R_curr = tf.transformations.quaternion_matrix(R_input)[0:3, 0:3]
+        R_curr = transformations.quaternion_matrix(R_input)[0:3, 0:3]
 
         R_del = np.dot(self._target_feature_R, R_curr.T)
         R_del_homo = np.vstack((np.hstack((R_del, np.zeros((3, 1)))), np.array([0, 0, 0, 1])))
 
-        (theta, u, _) = tf.transformations.rotation_from_matrix(R_del_homo)
+        (theta, u, _) = transformations.rotation_from_matrix(R_del_homo)
 
         skew_symmetric = modern_robotics.VecToso3
 
@@ -110,12 +110,12 @@ class PBVS(VisualServoing):
         vel = -self._lambda * np.dot(np.linalg.pinv(L), error)
 
         # t_curr = np.array(t_input).flatten()
-        # R_curr = tf.transformations.quaternion_matrix(R_input)[0:3, 0:3]
+        # R_curr = transformations.quaternion_matrix(R_input)[0:3, 0:3]
 
         # R_del = np.dot(self._target_feature_R, R_curr.T)
         # R_del_homo = np.vstack((np.hstack((R_del, np.zeros((3,1)))), np.array([0, 0, 0, 1])))
 
-        # (theta, u, _)= tf.transformations.rotation_from_matrix(R_del_homo)
+        # (theta, u, _)= transformations.rotation_from_matrix(R_del_homo)
 
         # skew_symmetric = modern_robotics.VecToso3
 
@@ -137,14 +137,14 @@ class PBVS(VisualServoing):
         '''
 
         t_curr = np.array(t_input).flatten()
-        R_curr = tf.transformations.quaternion_matrix(R_input)[0:3, 0:3]
+        R_curr = transformations.quaternion_matrix(R_input)[0:3, 0:3]
 
         # see paragraph above Eq.13
         # of Chaumette, Francois, and Seth Hutchinson. "Visual servo control. I. Basic approaches."
         # t_del = t_curr - self._target_feature_t
         R_del = np.dot(self._target_feature_R, R_curr.T)
         R_del_homo = np.vstack((np.hstack((R_del, np.zeros((3, 1)))), np.array([0, 0, 0, 1])))
-        (theta, u, _) = tf.transformations.rotation_from_matrix(R_del_homo)
+        (theta, u, _) = transformations.rotation_from_matrix(R_del_homo)
 
         # see paragraph above Eq.17
         # of Chaumette, Francois, and Seth Hutchinson. "Visual servo control. I. Basic approaches."
@@ -166,11 +166,11 @@ class PBVS(VisualServoing):
         '''
 
         # t_curr = np.array(t_input).flatten()
-        R_curr = tf.transformations.quaternion_matrix(R_input)[0:3, 0:3]
+        R_curr = transformations.quaternion_matrix(R_input)[0:3, 0:3]
 
         R_del = np.dot(self._target_feature_R, R_curr.T)
         R_del_homo = np.vstack((np.hstack((R_del, np.zeros((3, 1)))), np.array([0, 0, 0, 1])))
-        (theta, u, _) = tf.transformations.rotation_from_matrix(R_del_homo)
+        (theta, u, _) = transformations.rotation_from_matrix(R_del_homo)
 
         skew_symmetric = modern_robotics.VecToso3
 
@@ -253,12 +253,12 @@ class PBVS(VisualServoing):
 #         vel = -self._lambda * np.dot(np.linalg.pinv(L), error)  # Set velocity
 #
 #         # t_curr = np.array(t_input).flatten()
-#         # R_curr = tf.transformations.quaternion_matrix(R_input)[0:3, 0:3]
+#         # R_curr = transformations.quaternion_matrix(R_input)[0:3, 0:3]
 #
 #         # R_del = np.dot(self._target_feature_R, R_curr.T)
 #         # R_del_homo = np.vstack((np.hstack((R_del, np.zeros((3,1)))), np.array([0, 0, 0, 1])))
 #
-#         # (theta, u, _)= tf.transformations.rotation_from_matrix(R_del_homo)
+#         # (theta, u, _)= transformations.rotation_from_matrix(R_del_homo)
 #
 #         # skew_symmetric = modern_robotics.VecToso3
 #

@@ -31,7 +31,7 @@ class KinovaVS(object):
 
     def __init__(self):
 
-        self._t_hc, self._R_hc = np.array([0, 0, 0]), np.array([0, 0, 0, 0]) # TODO: EDIT!
+        self._t_hc, self._R_hc = np.array([0, 0, 0]), np.array([0, 0, 0, 1]) # TODO: EDIT!
 
         self._R_hc = quaternion_matrix(self._R_hc)
 
@@ -56,16 +56,14 @@ class KinovaVS(object):
                  feedback.base.tool_pose_y,
                  feedback.base.tool_pose_z]
 
-            r = Rotation.from_euler('xyz', [np.deg2rad(feedback.base.tool_pose_theta_x),
+            r = Rotation.from_euler('zyx', [np.deg2rad(feedback.base.tool_pose_theta_z),
                                             np.deg2rad(feedback.base.tool_pose_theta_y),
-                                            np.deg2rad(feedback.base.tool_pose_theta_z)], degrees=False)
+                                            np.deg2rad(feedback.base.tool_pose_theta_x)], degrees=False)
 
             self._T_bh = modern_robotics.RpToTrans(r.as_matrix()[:3, :3], t)
             self._Ad_bh = modern_robotics.Adjoint(self._T_bh)
         except :
             print('Warning! Cant get transformation from gripper to base.')
-
-
 
     def body_frame_twist(self, v_c, base_cyclic):
         '''
@@ -111,7 +109,6 @@ class KinovaVS(object):
 
         self.set_twist_command(joint_vels, base)
 
-
     def set_twist_command(self,vel, base):
 
         command = Base_pb2.TwistCommand()
@@ -129,6 +126,6 @@ class KinovaVS(object):
 
         base.SendTwistCommand(command)
 
-        time.sleep(0.1)
+        time.sleep(0.01)
 
 
