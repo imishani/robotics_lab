@@ -63,7 +63,7 @@ if __name__ == '__main__':
 
             # set up the kinova
 
-            while True:  # TODO: add safety conditon
+            while True:  # TODO: add safety condition
                 # get pose estimation from tracker node
                 try:
                     t_curr, R_curr = tracker.track()
@@ -74,10 +74,10 @@ if __name__ == '__main__':
                     vel_body = kinova_vs.body_frame_twist(vel_cam, base_cyclic)
                 except:
                     print('Error! Cannot find [tag_0] to [desired_camera_frame] transform')
-                    vel_body = [0,0,0,0,0,0]
+                    vel_body = vel_cam = [0, 0, 0, 0, 0, 0]
                 # perform visual servoing
 
-                kinova_vs.set_joint_vel(vel_body, base, base_cyclic)
+                kinova_vs.set_joint_vel(vel_cam, base, base_cyclic)
 
                 # if np.linalg.norm(vel_body) < 10:
                 #     print("Stopping the robot")

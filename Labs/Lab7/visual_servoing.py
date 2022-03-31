@@ -105,6 +105,7 @@ class PBVS(VisualServoing):
         '''
 
         L = self._L(t_input, R_input)
+
         error = self._calculate_error(t_input, R_input)
 
         vel = -self._lambda * np.dot(np.linalg.pinv(L), error)

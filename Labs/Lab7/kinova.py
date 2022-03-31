@@ -33,7 +33,7 @@ class KinovaVS(object):
 
         self._t_hc, self._R_hc = np.array([0, 0, 0]), np.array([0, 0, 0, 1]) # TODO: EDIT!
 
-        self._R_hc = quaternion_matrix(self._R_hc)
+        self._R_hc = np.eye(3) #quaternion_matrix(self._R_hc)
 
         # frame transforms from camera to hand, only look up once
         self._T_hc = modern_robotics.RpToTrans(self._R_hc[:3, :3], self._t_hc)
@@ -56,12 +56,13 @@ class KinovaVS(object):
                  feedback.base.tool_pose_y,
                  feedback.base.tool_pose_z]
 
-            r = Rotation.from_euler('zyx', [np.deg2rad(feedback.base.tool_pose_theta_z),
+            r = Rotation.from_euler('xyz', [np.deg2rad(feedback.base.tool_pose_theta_x),
                                             np.deg2rad(feedback.base.tool_pose_theta_y),
-                                            np.deg2rad(feedback.base.tool_pose_theta_x)], degrees=False)
+                                            np.deg2rad(feedback.base.tool_pose_theta_z)], degrees=False)
 
             self._T_bh = modern_robotics.RpToTrans(r.as_matrix()[:3, :3], t)
             self._Ad_bh = modern_robotics.Adjoint(self._T_bh)
+
         except :
             print('Warning! Cant get transformation from gripper to base.')
 
@@ -97,15 +98,16 @@ class KinovaVS(object):
         '''
 
         # Calculate joint velocities to achieve desired velocity
-        actuator_count = base.GetActuatorCount().count
-        Q = []
-        for joint_id in range(actuator_count):
-            Q.append(np.deg2rad(base_cyclic.RefreshFeedback().actuators[joint_id].position))
+        # actuator_count = base.GetActuatorCount().count
+        # Q = []
+        # for joint_id in range(actuator_count):
+        #     Q.append(np.deg2rad(base_cyclic.RefreshFeedback().actuators[joint_id].position))
 
-        joint_vels = np.dot(np.linalg.pinv(Jacobian(Q)), vel_b)
-        joint_vels = np.array(joint_vels).reshape(-1, )
+        # joint_vels = np.dot(np.linalg.pinv(Jacobian(Q)), vel_b)
 
-        print ("Joint Vel Command:{}".format(joint_vels))
+        joint_vels = np.array(vel_b).reshape(-1, )
+
+        # print ("Joint Vel Command:{}".format(joint_vels))
 
         self.set_twist_command(joint_vels, base)
 
@@ -117,12 +119,13 @@ class KinovaVS(object):
         command.duration = 0
 
         twist = command.twist
-        twist.linear_x = vel[0] * 0.1
-        twist.linear_y = vel[1] * 0.1
-        twist.linear_z = vel[2] * 0.1
-        twist.angular_x = vel[3] * 0.1
-        twist.angular_y = vel[4] * 0.1
-        twist.angular_z = vel[5] * 0.1
+        twist.linear_x = vel[0] * 1.
+        twist.linear_y = vel[1] * 1.
+        twist.linear_z = vel[2] * 1.
+        twist.angular_x = vel[3] * 1.
+        twist.angular_y = vel[4] * 1.
+        twist.angular_z = vel[5] * 1.
+        print ("Joint Vel Command:{}".format(vel))
 
         base.SendTwistCommand(command)
 
