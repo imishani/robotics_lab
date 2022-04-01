@@ -15,14 +15,9 @@ if os.name == 'nt':
 else:
   import tty, termios
 
-from kortex_api.autogen.client_stubs.BaseClientRpc import BaseClient
-from kortex_api.autogen.client_stubs.BaseCyclicClientRpc import BaseCyclicClient
 from kortex_api.autogen.messages import Base_pb2, BaseCyclic_pb2, Common_pb2
-import signal
-import sys
 import time
 from utils import Jacobian
-import threading
 
 class KinovaVS(object):
     '''
@@ -105,9 +100,10 @@ class KinovaVS(object):
 
         # joint_vels = np.dot(np.linalg.pinv(Jacobian(Q)), vel_b)
 
-        joint_vels = np.array(vel_b).reshape(-1, )
-
         # print ("Joint Vel Command:{}".format(joint_vels))
+
+        ''' because we can also control w.r.t end effector, we dont transfer to joint vels.'''
+        joint_vels = np.array(vel_b).reshape(-1, )
 
         self.set_twist_command(joint_vels, base)
 
@@ -115,6 +111,7 @@ class KinovaVS(object):
 
         command = Base_pb2.TwistCommand()
 
+        ''' Pay attention to the frame '''
         command.reference_frame = Base_pb2.CARTESIAN_REFERENCE_FRAME_TOOL
         command.duration = 0
 
@@ -125,6 +122,7 @@ class KinovaVS(object):
         twist.angular_x = vel[3] * 1.
         twist.angular_y = vel[4] * 1.
         twist.angular_z = vel[5] * 1.
+
         print ("Joint Vel Command:{}".format(vel))
 
         base.SendTwistCommand(command)

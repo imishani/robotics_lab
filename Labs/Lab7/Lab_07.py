@@ -1,10 +1,4 @@
 #!/usr/bin/env python
-
-import sys
-import numpy as np
-
-# from tf.transformations import *
-# import tf
 import sys
 import os
 sys.path.insert(0, r'C:\Users\RobLab\Desktop\robotics_lab\robotics_lab\Labs\common\Aruco_Tracker-master')
@@ -18,7 +12,6 @@ else:
 
 from kortex_api.autogen.client_stubs.BaseClientRpc import BaseClient
 from kortex_api.autogen.client_stubs.BaseCyclicClientRpc import BaseCyclicClient
-from kortex_api.autogen.messages import Base_pb2, BaseCyclic_pb2, Common_pb2
 from scipy.spatial.transform import Rotation as R
 
 if __name__ == '__main__':
