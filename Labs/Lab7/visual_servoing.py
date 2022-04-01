@@ -48,6 +48,8 @@ class PBVS(VisualServoing):
 
         # see paragraph above Eq.13
         # of Chaumette, Francois, and Seth Hutchinson. "Visual servo control. I. Basic approaches."
+        # https://hal.inria.fr/inria-00350283/document
+
         t_del = t_curr - self._target_feature_t
         R_del = np.dot(self._target_feature_R, R_curr.T)
         R_del_homo = np.vstack((np.hstack((R_del, np.zeros((3, 1)))), np.array([0, 0, 0, 1])))

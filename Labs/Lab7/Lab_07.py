@@ -62,13 +62,12 @@ if __name__ == '__main__':
                     t_curr, R_curr = tracker.track()
                     t_curr, R_curr = t_curr.squeeze(), R_curr.squeeze()
                     R_curr = R.from_rotvec(R_curr).as_quat()
-                    vel_cam = controller.caculate_vel(t_curr, R_curr)
-
-                    vel_body = kinova_vs.body_frame_twist(vel_cam, base_cyclic)
+                    vel_cam = controller.caculate_vel(t_curr, R_curr)  # calc vel w.r.t camera frame
+                    vel_body = kinova_vs.body_frame_twist(vel_cam, base_cyclic) # convert cam_vel to vel w.r.t body frame
                 except:
                     print('Error! Cannot find [tag_0] to [desired_camera_frame] transform')
                     vel_body = vel_cam = [0, 0, 0, 0, 0, 0]
-                # perform visual servoing
+
 
                 kinova_vs.set_joint_vel(vel_cam, base, base_cyclic)
 

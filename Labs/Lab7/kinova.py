@@ -26,9 +26,10 @@ class KinovaVS(object):
 
     def __init__(self):
 
-        self._t_hc, self._R_hc = np.array([0, 0, 0]), np.array([0, 0, 0, 1]) # TODO: EDIT!
+        # constant translation between tool to camera frame
+        self._t_hc, self._R_hc = np.array([0, 0, 0]), np.array([0, 0, 0, 1])
 
-        self._R_hc = np.eye(3) #quaternion_matrix(self._R_hc)
+        self._R_hc = np.eye(3)  # quaternion_matrix(self._R_hc)
 
         # frame transforms from camera to hand, only look up once
         self._T_hc = modern_robotics.RpToTrans(self._R_hc[:3, :3], self._t_hc)
