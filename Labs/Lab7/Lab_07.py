@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import sys
 import os
-sys.path.insert(0, r'C:\Users\RobLab\Desktop\robotics_lab\robotics_lab\Labs\common\Aruco_Tracker-master')
+sys.path.insert(0, r'../common/Aruco_Tracker-master')
 from aruco_module import aruco_track
 from kinova import KinovaVS
 from visual_servoing import PBVS
@@ -63,10 +63,10 @@ if __name__ == '__main__':
                     t_curr, R_curr = t_curr.squeeze(), R_curr.squeeze()
                     R_curr = R.from_rotvec(R_curr).as_quat()
                     vel_cam = controller.caculate_vel(t_curr, R_curr)  # calc vel w.r.t camera frame
-                    vel_body = kinova_vs.body_frame_twist(vel_cam, base_cyclic) # convert cam_vel to vel w.r.t body frame
+                    vel_body, vel_ee = kinova_vs.body_frame_twist(vel_cam, base_cyclic) # convert cam_vel to vel w.r.t body frame
                 except:
                     print('Error! Cannot find [tag_0] to [desired_camera_frame] transform')
-                    vel_body = vel_cam = [0, 0, 0, 0, 0, 0]
+                    vel_body = vel_cam = vel_ee = [0, 0, 0, 0, 0, 0]
 
 
                 kinova_vs.set_joint_vel(vel_cam, base, base_cyclic)

@@ -12,7 +12,6 @@ from kortex_api.autogen.client_stubs.BaseClientRpc import BaseClient
 from kortex_api.autogen.client_stubs.BaseCyclicClientRpc import BaseCyclicClient
 from kortex_api.autogen.messages import Base_pb2, BaseCyclic_pb2, Common_pb2
 import sys
-# from lab02_student import *
 from lab06_solution import *
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -72,7 +71,8 @@ class robotic_arm():
         T_45 = self.TF_matrix(alpha5, a5, d5, q5).subs(self.dh_params)
         self.tf_matrices_list.append(T_01 * T_12 * T_23 * T_34 * T_45)
         T_56 = self.TF_matrix(alpha6, a6, d6, q6).subs(self.dh_params)
-        T = T_01 * T_12 * T_23 * T_34 * T_45 * T_56
+        Tes = Matrix([[0, -1, 0, 0], [1, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+        T = T_01 * T_12 * T_23 * T_34 * T_45 * T_56 * Tes
         self.tf_matrices_list.append(T)
 
     def show_transform_matrices(self):
@@ -128,54 +128,6 @@ class robotic_arm():
 
         return T_0G.evalf(subs=theta_dict, chop=True, maxn=4)
 
-    def inverse_kinematics(self, guess, target):
-        error = 10.0
-        tolerance = 10.0
-
-        # Initial Guess - Joint Angles
-        Q = guess
-        # X,Y expression
-        # X,Y,Z R,P,Y value for Target Position
-        target = np.matrix(target)
-        print(target.shape)
-        # Jacobian
-        self.jacobian_func()
-        # T_0G = self.tf_matrices_list[-1]
-
-        error_grad = []
-
-        theta_dict = {}
-
-        lr = 0.1
-
-        while error > tolerance:
-
-            for i in range(len(Q)):
-                theta_dict[self.q[i]] = Q[i]
-
-            T_q = np.matrix(self.forward_kinematics(Q)[-1])
-
-            delta_T = target - T_q
-
-            Q = Q + lr * (inv(np.matrix(self.jacobian_mat.evalf(subs=theta_dict, chop=True, maxn=10)).astype(
-                np.float64)) * delta_T).reshape(-1)
-            Q = Q.tolist()[0]
-
-            prev_error = error
-
-            error = LA.norm(delta_T)
-
-            # if error > 10 * tolerance:
-            #     lr = 0.3
-            # elif error < 10 * tolerance:
-            #     lr = 0.2
-
-            error_grad.append((error - prev_error))
-
-            print(error)
-
-        return Q
-
 def prop_k_estimation(base_cyclic, ):
 
     theta_dict = {}
@@ -195,7 +147,7 @@ def prop_k_estimation(base_cyclic, ):
     """
     #################
     c=0
-    while(False):
+    while(True):
         for i in range(len(base_cyclic.RefreshFeedback().actuators)):
             cur_joint[i] = base_cyclic.RefreshFeedback().actuators[i].position
             theta_dict.update({'q' + str(i + 1): cur_joint[i]})
@@ -222,7 +174,7 @@ def static_load(base_cyclic, ft):
     #     F = ft.get_reading()
     #     print(F)
     ft = ft_sens()
-
+    ft_bias = None
     while True:
         for i in range(len(base_cyclic.RefreshFeedback().actuators)):
             cur_joint[i] = base_cyclic.RefreshFeedback().actuators[i].position
@@ -233,8 +185,10 @@ def static_load(base_cyclic, ft):
         # F = ft.get_reading()  # Fx,Fy,Fz, Mx,My,Mz
         tau = -J.T.dot(F)  # estimated
         error = tau - cur_torque
+        if ft_bias is None:
+            ft_bias = cur_torque.copy()
         print("F: " + str(F))
-        print("cur_torque: " + str(cur_torque.tolist()))
+        print("cur_torque: " + str((cur_torque - ft_bias).tolist()))
         print("cur_tau: " + str(tau.tolist()))
 
 def dynamic_test(base, base_cyclic):

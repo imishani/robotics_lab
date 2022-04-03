@@ -27,7 +27,7 @@ class KinovaVS(object):
     def __init__(self):
 
         # constant translation between tool to camera frame
-        self._t_hc, self._R_hc = np.array([0, 0, 0]), np.array([0, 0, 0, 1])
+        self._t_hc, self._R_hc = np.array([0., 0., 0.08]), np.array([0, 0, 0, 1])
 
         self._R_hc = np.eye(3)  # quaternion_matrix(self._R_hc)
 
@@ -79,12 +79,12 @@ class KinovaVS(object):
         Get the transformation between the camera to the base, np.dot(self._Ad_bh, self._Ad_hc) 
                                                                        hand2body, cam2hand
         """
-
-        v_b = np.dot(self._Ad_bh, np.dot(self._Ad_hc, v_c))
+        v_e = np.dot(self._Ad_hc, v_c)
+        v_b = np.dot(self._Ad_bh, v_e)
 
         v_b = np.concatenate((v_b[3:6], v_b[0:3]))
 
-        return v_b
+        return v_b, v_e
 
     def set_joint_vel(self, vel_b, base, base_cyclic):
         '''
