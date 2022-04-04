@@ -22,6 +22,7 @@ from FT300_mishani import *
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../common/robot"))
 from robot_actions import *
 import utilities
+from statics import Statics
 
 
 
@@ -173,6 +174,7 @@ def static_load(base_cyclic, ft):
     # while True:
     #     F = ft.get_reading()
     #     print(F)
+    sts = Statics()
     ft = ft_sens()
     ft_bias = None
     while True:
@@ -182,13 +184,15 @@ def static_load(base_cyclic, ft):
             theta_dict.update({'q' + str(i + 1): np.deg2rad(cur_joint[i])})
         J = np.matrix(arm.jacobian_mat.evalf(subs=theta_dict, chop=True, maxn=10)).astype(np.float64)
         F = ft.get_forces()
+        G = sts.gravity(cur_joint)
         # F = ft.get_reading()  # Fx,Fy,Fz, Mx,My,Mz
-        tau = -J.T.dot(F)  # estimated
+        tau = G - J.T.dot(F)  # estimated
         error = tau - cur_torque
-        if ft_bias is None:
-            ft_bias = cur_torque.copy()
+        # if ft_bias is None:
+        #     ft_bias = cur_torque.copy()
         print("F: " + str(F))
-        print("cur_torque: " + str((cur_torque - ft_bias).tolist()))
+        # print("cur_torque: " + str((cur_torque - ft_bias).tolist()))
+        print("cur_torque: " + str(cur_torque.tolist()))
         print("cur_tau: " + str(tau.tolist()))
 
 def dynamic_test(base, base_cyclic):
