@@ -27,7 +27,7 @@ class KinovaVS(object):
     def __init__(self):
 
         # constant translation between tool to camera frame
-        self._t_hc, self._R_hc = np.array([0., 0., 0.08]), np.array([0, 0, 0, 1])
+        self._t_hc, self._R_hc = np.array([0., -0.08, 0]), np.array([0, 0, 0, 1])
 
         self._R_hc = np.eye(3)  # quaternion_matrix(self._R_hc)
 
@@ -83,6 +83,7 @@ class KinovaVS(object):
         v_b = np.dot(self._Ad_bh, v_e)
 
         v_b = np.concatenate((v_b[3:6], v_b[0:3]))
+        v_e = np.concatenate((v_e[3:6], v_e[0:3]))
 
         return v_b, v_e
 
@@ -93,20 +94,21 @@ class KinovaVS(object):
         Input: twist, [nu, omg], 1x6
         '''
 
-        # Calculate joint velocities to achieve desired velocity
+        # # Calculate joint velocities to achieve desired velocity
         # actuator_count = base.GetActuatorCount().count
         # Q = []
         # for joint_id in range(actuator_count):
         #     Q.append(np.deg2rad(base_cyclic.RefreshFeedback().actuators[joint_id].position))
-
+        #
         # joint_vels = np.dot(np.linalg.pinv(Jacobian(Q)), vel_b)
-
+        #
         # print ("Joint Vel Command:{}".format(joint_vels))
 
         ''' because we can also control w.r.t end effector, we dont transfer to joint vels.'''
         joint_vels = np.array(vel_b).reshape(-1, )
 
         self.set_twist_command(joint_vels, base)
+        # self.set_joint_speed(joint_vels, base)
 
     def set_twist_command(self,vel, base):
 
@@ -117,17 +119,40 @@ class KinovaVS(object):
         command.duration = 0
 
         twist = command.twist
-        twist.linear_x = vel[0] * 1.
-        twist.linear_y = vel[1] * 1.
-        twist.linear_z = vel[2] * 1.
-        twist.angular_x = vel[3] * 1.
-        twist.angular_y = vel[4] * 1.
-        twist.angular_z = vel[5] * 1.
-
-        print ("Joint Vel Command:{}".format(vel))
+        twist.linear_x = vel[0] * 1
+        twist.linear_y = vel[1] * 1
+        twist.linear_z = vel[2] * 1
+        twist.angular_x = vel[3] * 0.3
+        twist.angular_y = vel[4] * 0.3
+        twist.angular_z = vel[5] * 0.3
 
         base.SendTwistCommand(command)
 
-        time.sleep(0.01)
+        time.sleep(0.1)
 
+        twist.linear_x = vel[0] * 0
+        twist.linear_y = vel[1] * 0
+        twist.linear_z = vel[2] * 0
+        twist.angular_x = vel[3] * 0
+        twist.angular_y = vel[4] * 0
+        twist.angular_z = vel[5] * 0
+
+        base.SendTwistCommand(command)
+
+    def set_joint_speed(self,vel , base):
+
+        joint_speeds = Base_pb2.JointSpeeds()
+
+        actuator_count = base.GetActuatorCount().count
+        # The 7DOF robot will spin in the same direction for 10 seconds
+        i = 0
+        for speed in vel:
+            joint_speed = joint_speeds.joint_speeds.add()
+            joint_speed.joint_identifier = i
+            joint_speed.value = np.rad2deg(speed)
+            joint_speed.duration = 0
+            i = i + 1
+
+        base.SendJointSpeedsCommand(joint_speeds)
+        time.sleep(0.01)
 
