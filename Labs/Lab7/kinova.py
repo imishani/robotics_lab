@@ -130,14 +130,7 @@ class KinovaVS(object):
 
         time.sleep(0.1)
 
-        twist.linear_x = vel[0] * 0
-        twist.linear_y = vel[1] * 0
-        twist.linear_z = vel[2] * 0
-        twist.angular_x = vel[3] * 0
-        twist.angular_y = vel[4] * 0
-        twist.angular_z = vel[5] * 0
 
-        base.SendTwistCommand(command)
 
     def set_joint_speed(self,vel , base):
 
