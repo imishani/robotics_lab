@@ -2,6 +2,7 @@
 
 import numpy as np
 import transformations
+from scipy.spatial.transform import Rotation as R
 import modern_robotics
 
 
@@ -26,7 +27,7 @@ class PBVS(VisualServoing):
                 R_input, 4x1 vector, quaternion
         '''
         self._target_feature_t = np.array(t_input).flatten()
-        self._target_feature_R = transformations.quaternion_matrix(R_input)[0:3, 0:3]
+        self._target_feature_R = R.from_quat(R_input).as_matrix()   # transformations.quaternion_matrix(R_input)[0:3, 0:3]
         self._target_features_set = True
 
         print("\n")
@@ -44,7 +45,7 @@ class PBVS(VisualServoing):
         '''
 
         t_curr = np.array(t_input).flatten()
-        R_curr = transformations.quaternion_matrix(R_input)[0:3, 0:3]
+        R_curr = R.from_quat(R_input).as_matrix()   # transformations.quaternion_matrix(R_input)[0:3, 0:3]
 
         # see paragraph above Eq.13
         # of Chaumette, Francois, and Seth Hutchinson. "Visual servo control. I. Basic approaches."
@@ -54,13 +55,14 @@ class PBVS(VisualServoing):
         R_del = np.dot(self._target_feature_R, R_curr.T)
         R_del_homo = np.vstack((np.hstack((R_del, np.zeros((3, 1)))), np.array([0, 0, 0, 1])))
         (theta, u, _) = transformations.rotation_from_matrix(R_del_homo)
-
+        theta = round(theta, 2)
+        rotv = R.from_matrix(R_del_homo[:3, :3]).as_rotvec()
+        print(f'Checker of rotv: {theta * u - rotv}')
+        # theta, u = np.linalg.norm(rotv), rotv/np.linalg.norm(rotv)
         if self._translation_only:
             error = np.hstack((t_del, np.zeros(3)))
         else:
             error = np.hstack((t_del, theta * u))
-
-        print("Error:{:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}".format(error[0], error[1], error[2], error[3], error[4], error[5]))
 
         return error
 
@@ -74,13 +76,16 @@ class PBVS(VisualServoing):
         '''
 
         t_curr = np.array(t_input).flatten()
-        R_curr = transformations.quaternion_matrix(R_input)[0:3, 0:3]
+        R_curr = R.from_quat(R_input).as_matrix()   # transformations.quaternion_matrix(R_input)[0:3, 0:3]
 
         R_del = np.dot(self._target_feature_R, R_curr.T)
         R_del_homo = np.vstack((np.hstack((R_del, np.zeros((3, 1)))), np.array([0, 0, 0, 1])))
 
         (theta, u, _) = transformations.rotation_from_matrix(R_del_homo)
-
+        theta = round(theta, 2)
+        rotv = R.from_matrix(R_del_homo[:3,:3]).as_rotvec()
+        print(f'Checker of rotv: {theta*u - rotv}')
+        # theta, u = np.linalg.norm(rotv), rotv / np.linalg.norm(rotv)
         skew_symmetric = modern_robotics.VecToso3
 
         skew_t = skew_symmetric(t_curr)
@@ -111,4 +116,4 @@ class PBVS(VisualServoing):
 
         vel = -self._lambda * np.dot(np.linalg.pinv(L), error)
 
-        return vel
+        return vel, error

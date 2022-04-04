@@ -12,11 +12,14 @@ import numpy as np
 import cv2
 import cv2.aruco as aruco
 import glob
+from scipy.spatial.transform import Rotation
+
 # PATH = 'calib_images/tests/*.jpg'
-PATH = r'C:\Users\USER\Desktop\dev\robotics_lab\Labs\common\Aruco_Tracker-master\calib_images/tests/*.jpg'
+PATH  = r'C:\Users\admin\Documents\robotics_lab\Labs\common\Aruco_Tracker-master\calib_images/tests/*.jpg'
+# PATH = r'C:\Users\USER\Desktop\dev\robotics_lab\Labs\common\Aruco_Tracker-master\calib_images/tests/*.jpg'
 class aruco_track():
 
-    def __init__(self, channel=0, cbrow=6, cbcol=9, path=PATH, shape=aruco.DICT_4X4_100):
+    def __init__(self, channel=1, cbrow=6, cbcol=9, path=PATH, shape=aruco.DICT_4X4_100):
         self.cap = cv2.VideoCapture(channel,cv2.CAP_DSHOW)
         self.cbrow = cbrow
         self.cbrow = cbrow
@@ -124,8 +127,12 @@ if __name__ =='__main__':
     counter = 0
     while (True):
         tvec, rvec  = aru.track()
-        if counter%50:
-            print('rvec: {}, tvec: {}'.format(rvec, tvec))
+        if counter%50 and tvec is not None:
+            # print('rvec: {}, tvec: {}'.format(rvec, tvec))
+            t_curr, R_curr = tvec.squeeze(), rvec.squeeze()
+            R_curr = Rotation.from_rotvec(R_curr).as_euler('xyz')
+            print('rvec: {}, tvec: {}'.format(np.degrees(R_curr), t_curr))
+
         counter += 1
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
