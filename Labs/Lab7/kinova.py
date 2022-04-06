@@ -27,9 +27,8 @@ class KinovaVS(object):
     def __init__(self):
 
         # constant translation between tool to camera frame
-        self._t_hc, self._R_hc = np.array([0., -0.08, 0]), np.array([0, 0, 0, 1])
-
-        self._R_hc = np.eye(3)  # quaternion_matrix(self._R_hc)
+        self._t_hc = np.array([0., -0.08, 0])
+        self._R_hc = np.eye(3)
 
         # frame transforms from camera to hand, only look up once
         self._T_hc = modern_robotics.RpToTrans(self._R_hc[:3, :3], self._t_hc)
@@ -122,14 +121,13 @@ class KinovaVS(object):
         twist.linear_x = vel[0] * 1
         twist.linear_y = vel[1] * 1
         twist.linear_z = vel[2] * 1
-        twist.angular_x = vel[3] * 0.3
-        twist.angular_y = vel[4] * 0.3
-        twist.angular_z = vel[5] * 0.3
+        twist.angular_x = vel[3] * 100
+        twist.angular_y = vel[4] * 100
+        twist.angular_z = vel[5] * 100
 
         base.SendTwistCommand(command)
 
-        time.sleep(0.1)
-
+        time.sleep(0.01)
 
 
     def set_joint_speed(self,vel , base):

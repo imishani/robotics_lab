@@ -27,8 +27,8 @@ class PBVS(VisualServoing):
                 R_input, 4x1 vector, quaternion
         '''
         self._target_feature_t = np.array(t_input).flatten()
-        # self._target_feature_R = R.from_quat(R_input).as_matrix()
-        self._target_feature_R = transformations.quaternion_matrix(R_input)[0:3, 0:3]
+        self._target_feature_R = R.from_quat(R_input).as_matrix()
+        # self._target_feature_R = transformations.quaternion_matrix(R_input)[0:3, 0:3]
         self._target_features_set = True
 
         print("\n")
@@ -60,6 +60,7 @@ class PBVS(VisualServoing):
         # rotv = R.from_matrix(R_del_homo[:3, :3]).as_rotvec()
         # print(f'Checker of rotv: {theta * u - rotv}')
         # theta, u = np.linalg.norm(rotv), rotv/np.linalg.norm(rotv)
+
         if self._translation_only:
             error = np.hstack((t_del, np.zeros(3)))
         else:

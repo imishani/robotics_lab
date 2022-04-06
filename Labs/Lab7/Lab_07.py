@@ -5,6 +5,7 @@ sys.path.insert(0, r'../common/Aruco_Tracker-master')
 from aruco_module import aruco_track
 from kinova import KinovaVS
 from visual_servoing import PBVS
+
 if os.name == 'nt':
   import msvcrt
 else:

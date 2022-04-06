@@ -19,7 +19,7 @@ PATH  = r'C:\Users\admin\Documents\robotics_lab\Labs\common\Aruco_Tracker-master
 # PATH = r'C:\Users\USER\Desktop\dev\robotics_lab\Labs\common\Aruco_Tracker-master\calib_images/tests/*.jpg'
 class aruco_track():
 
-    def __init__(self, channel=1, cbrow=6, cbcol=9, path=PATH, shape=aruco.DICT_4X4_100):
+    def __init__(self, channel=0, cbrow=6, cbcol=9, path=PATH, shape=aruco.DICT_4X4_100):
         self.cap = cv2.VideoCapture(channel,cv2.CAP_DSHOW)
         self.cbrow = cbrow
         self.cbrow = cbrow
@@ -95,7 +95,7 @@ class aruco_track():
 
             # estimate pose of each marker and return the values
             # rvet and tvec-different from camera coefficients
-            rvec, tvec, _ = aruco.estimatePoseSingleMarkers(corners, 0.05, self.mtx, self.dist)
+            rvec, tvec, _ = aruco.estimatePoseSingleMarkers(corners, 0.02, self.mtx, self.dist)
 
             for i in range(0, ids.size):
                 # draw axis for the aruco markers
