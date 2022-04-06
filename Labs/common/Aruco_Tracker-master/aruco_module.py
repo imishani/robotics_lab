@@ -16,8 +16,8 @@ PATH = 'C:/Users/admin\Documents/robotics_lab/Labs/common/Aruco_Tracker-master/c
 
 class aruco_track():
 
-    def __init__(self, channel=1, cbrow=6, cbcol=9, path=PATH, shape=aruco.DICT_4X4_250):
-        self.cap = cv2.VideoCapture(channel,cv2.CAP_DSHOW)
+    def __init__(self, channel=0, cbrow=6, cbcol=9, path=PATH, shape=aruco.DICT_4X4_250):
+        self.cap = cv2.VideoCapture(channel, cv2.CAP_DSHOW)
         self.cbrow = cbrow
         self.cbcol = cbcol
         self.path = path
