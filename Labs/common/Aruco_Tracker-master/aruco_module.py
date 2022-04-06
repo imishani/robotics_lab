@@ -12,12 +12,21 @@ import numpy as np
 import cv2
 import cv2.aruco as aruco
 import glob
-PATH = 'C:/Users/admin\Documents/robotics_lab/Labs/common/Aruco_Tracker-master/calib_images/tests/*.jpg'
+from scipy.spatial.transform import Rotation
 
+# PATH = 'calib_images/tests/*.jpg'
+PATH  = r'C:\Users\admin\Documents\robotics_lab\Labs\common\Aruco_Tracker-master\calib_images/tests/*.jpg'
+# PATH = r'C:\Users\USER\Desktop\dev\robotics_lab\Labs\common\Aruco_Tracker-master\calib_images/tests/*.jpg'
 class aruco_track():
 
+<<<<<<< HEAD
     def __init__(self, channel=0, cbrow=6, cbcol=9, path=PATH, shape=aruco.DICT_4X4_250):
         self.cap = cv2.VideoCapture(channel, cv2.CAP_DSHOW)
+=======
+    def __init__(self, channel=0, cbrow=6, cbcol=9, path=PATH, shape=aruco.DICT_4X4_100):
+        self.cap = cv2.VideoCapture(channel,cv2.CAP_DSHOW)
+>>>>>>> c86e76ff435eb9c87f00cd26d9000728f76fb89a
+        self.cbrow = cbrow
         self.cbrow = cbrow
         self.cbcol = cbcol
         self.path = path
@@ -32,6 +41,7 @@ class aruco_track():
         objp = np.zeros((self.cbrow * self.cbcol, 3), np.float32)
         objp[:,:2] = np.mgrid[0:self.cbcol, 0:self.cbrow].T.reshape(-1,2)
 
+        objp = objp * 0.024
         # arrays to store object points and image points from all the images.
         objpoints = [] # 3d point in real world space
         imgpoints = [] # 2d points in image plane.
@@ -90,7 +100,7 @@ class aruco_track():
 
             # estimate pose of each marker and return the values
             # rvet and tvec-different from camera coefficients
-            rvec, tvec ,_ = aruco.estimatePoseSingleMarkers(corners, 0.05, self.mtx, self.dist)
+            rvec, tvec, _ = aruco.estimatePoseSingleMarkers(corners, 0.02, self.mtx, self.dist)
 
             for i in range(0, ids.size):
                 # draw axis for the aruco markers
@@ -113,7 +123,7 @@ class aruco_track():
         # display the resulting frame
         cv2.imshow('frame',frame)
 
-        return rvec, tvec
+        return tvec, rvec
 
 
 
@@ -121,9 +131,13 @@ if __name__ =='__main__':
     aru = aruco_track()
     counter = 0
     while (True):
-        rvec, tvec = aru.track()
-        if counter%50:
-            print('rvec: {}, tvec: {}'.format(rvec, tvec))
+        tvec, rvec  = aru.track()
+        if counter%50 and tvec is not None:
+            # print('rvec: {}, tvec: {}'.format(rvec, tvec))
+            t_curr, R_curr = tvec.squeeze(), rvec.squeeze()
+            R_curr = Rotation.from_rotvec(R_curr).as_euler('xyz')
+            print('rvec: {}, tvec: {}'.format(np.degrees(R_curr), t_curr))
+
         counter += 1
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break

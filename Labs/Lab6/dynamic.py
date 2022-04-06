@@ -408,7 +408,7 @@ if __name__ == "__main__":
 
     path = 'trajectory.csv'
     dyn = Dynamics()
-    M = np.genfromtxt(path,delimiter=',')
+    M = np.genfromtxt(path, delimiter=',')
     N = M.shape[0]
     couple = np.zeros((N,6))
 

@@ -1,16 +1,11 @@
 #!/usr/bin/env python
-
-import sys
-import numpy as np
-
-# from tf.transformations import *
-# import tf
 import sys
 import os
-sys.path.insert(0, r'C:\Users\RobLab\Desktop\robotics_lab\robotics_lab\Labs\common\Aruco_Tracker-master')
+sys.path.insert(0, r'../common/Aruco_Tracker-master')
 from aruco_module import aruco_track
 from kinova import KinovaVS
 from visual_servoing import PBVS
+
 if os.name == 'nt':
   import msvcrt
 else:
@@ -18,7 +13,6 @@ else:
 
 from kortex_api.autogen.client_stubs.BaseClientRpc import BaseClient
 from kortex_api.autogen.client_stubs.BaseCyclicClientRpc import BaseCyclicClient
-from kortex_api.autogen.messages import Base_pb2, BaseCyclic_pb2, Common_pb2
 from scipy.spatial.transform import Rotation as R
 
 if __name__ == '__main__':
@@ -44,7 +38,7 @@ if __name__ == '__main__':
             base_cyclic = BaseCyclicClient(router)
 
             controller = PBVS()
-            controller._translation_only = True
+            controller._translation_only = False
             tracker = aruco_track()
             # set target pose
 
@@ -63,26 +57,27 @@ if __name__ == '__main__':
 
             # set up the kinova
 
-            while (True):  # TODO: add safety conditon
+            while True:  # TODO: add safety condition
                 # get pose estimation from tracker node
                 try:
                     t_curr, R_curr = tracker.track()
                     t_curr, R_curr = t_curr.squeeze(), R_curr.squeeze()
                     R_curr = R.from_rotvec(R_curr).as_quat()
+                    vel_cam, error = controller.caculate_vel(t_curr, R_curr)  # calc vel w.r.t camera frame
+                    vel_body, vel_ee = kinova_vs.body_frame_twist(vel_cam, base_cyclic) # convert cam_vel to vel w.r.t body frame
+                    print("Error: {:3.3f}, {:3.3f}, {:3.3f}, {:3.3f}, {:3.3f}, {:3.3f}".format(error[0], error[1],
+                                                                                               error[2], error[3],
+                                                                                               error[4], error[5]))
+
                 except:
                     print('Error! Cannot find [tag_0] to [desired_camera_frame] transform')
-                    break
+                    vel_body = vel_cam = vel_ee = [0, 0, 0, 0, 0, 0]
 
-                # perform visual servoing
-                vel_cam = controller.caculate_vel(t_curr, R_curr)
+                kinova_vs.set_joint_vel(vel_ee, base, base_cyclic)
+                print("TCP Vel Command: {:3.3f}, {:3.3f}, {:3.3f}, {:3.3f}, {:3.3f}, {:3.3f}\n".format(vel_ee[0], vel_ee[1],
+                                                                                             vel_ee[2], vel_ee[3],
+                                                                                             vel_ee[4], vel_ee[5]))
 
-                vel_body = kinova_vs.body_frame_twist(vel_cam, base_cyclic)
-                kinova_vs.set_joint_vel(vel_body, base, base_cyclic)
-
-                # if np.linalg.norm(vel_body) < 10:
-                #     print("Stopping the robot")
-                #     base.Stop()
-                #     break
 
     except KeyboardInterrupt:
         pass
