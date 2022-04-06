@@ -2,11 +2,14 @@ import cv2
 import numpy as np
 import argparse
 import time
-import pandas as pd
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import math
-
+from scipy.spatial.transform import Rotation as R
+import sys
+sys.path.insert(0, r'../common/Aruco_Tracker-master')
+from aruco_module import aruco_track
+from Lab5_car import path_planning
 # -- for processor functions:
 import paho.mqtt.client as mqttClient
 import json
@@ -15,7 +18,7 @@ import os
 
 # Global Parameters
 car_ID = 4
-axes_origin_ID = 3
+axes_origin_ID = 16
 s = time.time()
 
 
@@ -186,17 +189,52 @@ def detect(img, dictionary, parameters):
 #--------------------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
 
-    myScreen = cameraScreen()
-    print(myScreen.arucosList)
-
-    cntrlr = Controller(4) # input car ID
-    cntrlr.connect()
-    time.sleep(1)
-    cntrlr.motor_command(1., 1.)    # Don't move!
-
     #Test
     next = 1
+    car_ID = int(input('Enter car ID:   '))
+    goal_ID = int(input('Enter goal ID:   '))
+    cntrlr = Controller(4)  # input car ID
+    cntrlr.connect()
+    time.sleep(1)
+    cntrlr.motor_command(1., 1.)  # Don't move!
+    tracker = aruco_track()
+    try:
+        t_curr, R_curr, ids = tracker.track()
+        t_curr, R_curr, ids = t_curr.squeeze(), R_curr.squeeze(), ids.squeeze()
+
+        trans, rot = {}, {}
+        for i in range(len(ids)):
+            trans[ids[i]] = t_curr[i, :]
+            rot[ids[i]] = R.from_rotvec(R_curr[i, :]).as_matrix()
+    except:
+        print('Error! Cannot detect frames')
+        sys.exit(0)
+
+    ######## Plan a path:
+
+    obs = ids[ids != [car_ID, goal_ID, axes_origin_ID]]
+    obs = [(trans[i][:2] - trans[axes_origin_ID][:2]).tolist().append(0.5) for i in obs]
+    path_ = path_planning((trans[car_ID][:2] - trans[axes_origin_ID][:2]).tolist(),
+                          (trans[goal_ID][:2] - trans[axes_origin_ID][:2]).tolist(), obstacleList=obs, show_animation=True)
+
+    ########
+
     while cntrlr.Connected:
+        tolerance = 0.01
+        for next_goal in path_:
+            try:
+                t_curr, R_curr, ids = tracker.track()
+                t_curr, R_curr, ids = t_curr.squeeze(), R_curr.squeeze(), ids.squeeze()
+                for i in range(len(ids)):
+                    trans[ids[i]] = t_curr[i, :]
+                    rot[ids[i]] = R.from_rotvec(R_curr[i, :]).as_matrix()
+                err = trans[car_ID][:2] - trans[axes_origin_ID][:2] - np.array(next_goal)
+                while np.linalg.norm(err) > tolerance:
+
+
+            except:
+                print('Error! Cannot detect frames')
+                sys.exit(0)
         while (next):
             for i in range(0, len(myScreen.arucosList)):
                 if myScreen.arucosList[i]["id"] == car_ID:

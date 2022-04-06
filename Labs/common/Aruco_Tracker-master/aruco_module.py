@@ -15,18 +15,12 @@ import glob
 from scipy.spatial.transform import Rotation
 
 # PATH = 'calib_images/tests/*.jpg'
-PATH  = r'C:\Users\admin\Documents\robotics_lab\Labs\common\Aruco_Tracker-master\calib_images/tests/*.jpg'
-# PATH = r'C:\Users\USER\Desktop\dev\robotics_lab\Labs\common\Aruco_Tracker-master\calib_images/tests/*.jpg'
+# PATH  = r'C:\Users\admin\Documents\robotics_lab\Labs\common\Aruco_Tracker-master\calib_images/tests/*.jpg'
+PATH = r'C:\Users\USER\Desktop\robotics_lab\Labs\common\Aruco_Tracker-master\calib_images/tests/*.jpg'
 class aruco_track():
 
-<<<<<<< HEAD
     def __init__(self, channel=0, cbrow=6, cbcol=9, path=PATH, shape=aruco.DICT_4X4_250):
         self.cap = cv2.VideoCapture(channel, cv2.CAP_DSHOW)
-=======
-    def __init__(self, channel=0, cbrow=6, cbcol=9, path=PATH, shape=aruco.DICT_4X4_100):
-        self.cap = cv2.VideoCapture(channel,cv2.CAP_DSHOW)
->>>>>>> c86e76ff435eb9c87f00cd26d9000728f76fb89a
-        self.cbrow = cbrow
         self.cbrow = cbrow
         self.cbcol = cbcol
         self.path = path
@@ -123,7 +117,7 @@ class aruco_track():
         # display the resulting frame
         cv2.imshow('frame',frame)
 
-        return tvec, rvec
+        return tvec, rvec, ids
 
 
 

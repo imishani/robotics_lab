@@ -46,7 +46,7 @@ if __name__ == '__main__':
                 """ Capture target frame
                     Set the desired transform we want to achieve from the marker"""
                 track_transform = input('Press Enter to the target frame ([tag_0])\n')
-                t_target, R_target = tracker.track()
+                t_target, R_target, _ = tracker.track()
                 t_target, R_target = t_target.squeeze(), R_target.squeeze()
                 R_target = R.from_rotvec(R_target).as_quat()
             except:
@@ -60,7 +60,7 @@ if __name__ == '__main__':
             while True:  # TODO: add safety condition
                 # get pose estimation from tracker node
                 try:
-                    t_curr, R_curr = tracker.track()
+                    t_curr, R_curr, _ = tracker.track()
                     t_curr, R_curr = t_curr.squeeze(), R_curr.squeeze()
                     R_curr = R.from_rotvec(R_curr).as_quat()
                     vel_cam, error = controller.caculate_vel(t_curr, R_curr)  # calc vel w.r.t camera frame

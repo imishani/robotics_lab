@@ -34,8 +34,8 @@ class RRT:
                  goal,
                  obstacle_list,
                  rand_area,
-                 expand_dis=3.0,
-                 path_resolution=0.5,
+                 expand_dis=0.015,
+                 path_resolution=0.015,
                  goal_sample_rate=5,
                  max_iter=500):
         """
@@ -160,7 +160,7 @@ class RRT:
         plt.plot(self.start.x, self.start.y, "xr")
         plt.plot(self.end.x, self.end.y, "xr")
         plt.axis("equal")
-        plt.axis([-2, 15, -2, 15])
+        plt.axis([self.min_rand, self.max_rand, self.min_rand, self.max_rand])
         plt.grid(True)
         plt.pause(0.01)
 
