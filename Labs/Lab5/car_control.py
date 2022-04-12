@@ -20,7 +20,6 @@ class Controller():
         self.command_max = 255
         self.command_min = -255
 
-
     def connect(self):
         self.client.connect(self.broker_address, port=self.port)
         self.client.loop_start()

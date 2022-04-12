@@ -54,8 +54,8 @@ def camera_data(t_curr, R_curr, ids, next_goal):
 if __name__ == "__main__":
 
     tracker = aruco_track()
-    car_ID = 4  # int(input('Enter car ID:   '))
-    goal_ID = 3  # int(input('Enter goal ID:   '))
+    car_ID = int(input('Enter car ID:   '))
+    goal_ID = int(input('Enter goal ID:   '))
     cntrlr = Controller(car_ID)  # input car ID
     cntrlr.connect()
     time.sleep(1)
@@ -74,7 +74,7 @@ if __name__ == "__main__":
 
     # Plan a path:
 
-    obs = ids[[i for i in range(len(ids)) if ids[i] not in [goal_ID, car_ID]]]
+    obs = ids[[i for i in range(len(ids)) if ids[i] not in [goal_ID, car_ID, axes_origin_ID]]]
     obs = [np.hstack((homo[i][:2, 3] - homo[axes_origin_ID][:2, 3], 0.06)).tolist() for i in obs]
     path_ = path_planning((homo[car_ID][:2, 3] - homo[axes_origin_ID][:2, 3]).tolist(),
                           (homo[goal_ID][:2, 3] - homo[axes_origin_ID][:2, 3]).tolist(),
@@ -102,7 +102,6 @@ if __name__ == "__main__":
                 cntrlr.motor_command(-left, -right)
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
-
             i += 1
             cntrlr.motor_command(1, 1)
 

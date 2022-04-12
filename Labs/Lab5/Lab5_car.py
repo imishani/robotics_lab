@@ -18,7 +18,7 @@ obstacleList = [(5, 5, 1), (3, 6, 2), (3, 8, 2), (3, 10, 2), (7, 5, 2),
 """
 
 
-def path_planning(start, goal, obstacleList, show_animation=False, area=[-1.1, 1.1]):
+def path_planning(start, goal, obstacleList, show_animation=False, area=[-0.05, 0.65]):
     rrt = RRT(
         start=start,
         goal=goal,

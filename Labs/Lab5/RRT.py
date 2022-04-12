@@ -157,8 +157,8 @@ class RRT:
         for (ox, oy, size) in self.obstacle_list:
             self.plot_circle(ox, oy, size)
 
-        plt.plot(self.start.x, self.start.y, "xr")
-        plt.plot(self.end.x, self.end.y, "xr")
+        plt.text(self.start.x, self.start.y, "s", color='r', fontsize=16.)
+        plt.text(self.end.x, self.end.y, "g", color='r', fontsize=16.)
         plt.axis("equal")
         plt.axis([self.min_rand, self.max_rand, self.min_rand, self.max_rand])
         plt.grid(True)
