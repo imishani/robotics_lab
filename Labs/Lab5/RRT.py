@@ -34,8 +34,8 @@ class RRT:
                  goal,
                  obstacle_list,
                  rand_area,
-                 expand_dis=0.015,
-                 path_resolution=0.015,
+                 expand_dis=0.04,
+                 path_resolution=0.02,
                  goal_sample_rate=5,
                  max_iter=500):
         """

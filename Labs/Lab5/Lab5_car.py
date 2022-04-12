@@ -40,7 +40,7 @@ obstacleList = [(5, 5, 1), (3, 6, 2), (3, 8, 2), (3, 10, 2), (7, 5, 2),
 #         obstacle_list=obstacleList)
 #     path = rrt.planning(animation=show_animation)
 
-def path_planning(start, goal, obstacleList, show_animation=False, area=[-2, 2]):
+def path_planning(start, goal, obstacleList, show_animation=False, area=[-1.1, 1.1]):
     rrt = RRT(
         start=start,
         goal=goal,

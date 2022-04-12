@@ -7,6 +7,7 @@ References  :
     2) https://docs.opencv.org/3.4.3/dc/dbb/tutorial_py_calibration.html
     3) https://docs.opencv.org/3.1.0/d5/dae/tutorial_aruco_detection.html
 """
+import time
 
 import numpy as np
 import cv2
@@ -20,6 +21,7 @@ PATH = r'C:\Users\USER\Desktop\robotics_lab\Labs\common\Aruco_Tracker-master\cal
 class aruco_track():
 
     def __init__(self, channel=0, cbrow=6, cbcol=9, path=PATH, shape=aruco.DICT_4X4_250):
+
         self.cap = cv2.VideoCapture(channel, cv2.CAP_DSHOW)
         self.cbrow = cbrow
         self.cbcol = cbcol
@@ -69,8 +71,9 @@ class aruco_track():
     ###------------------ ARUCO TRACKER ---------------------------
 
     def track(self):
+
         ret, frame = self.cap.read()
-        cv2.imshow('frame',frame)
+        cv2.imshow('frame', frame)
 
         # operations on the frame
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -124,8 +127,10 @@ class aruco_track():
 if __name__ =='__main__':
     aru = aruco_track()
     counter = 0
+
     while (True):
-        tvec, rvec  = aru.track()
+        tvec, rvec, _ = aru.track()
+        # time.sleep(1)
         if counter%50 and tvec is not None:
             # print('rvec: {}, tvec: {}'.format(rvec, tvec))
             t_curr, R_curr = tvec.squeeze(), rvec.squeeze()
