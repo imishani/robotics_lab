@@ -56,5 +56,5 @@ class Controller():
         L = np.clip(L, self.command_min, self.command_max)
         R = np.clip(R, self.command_min, self.command_max)
         command = {"L": int(L), "R": int(R)}
-        print(f'Sending command: {command}')
+        # print(f'Sending command: {command}')
         self.send_command(command)
