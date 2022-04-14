@@ -16,8 +16,8 @@ import glob
 from scipy.spatial.transform import Rotation
 
 # PATH = 'calib_images/tests/*.jpg'
-# PATH  = r'C:\Users\admin\Documents\robotics_lab\Labs\common\Aruco_Tracker-master\calib_images/tests/*.jpg'
-PATH = r'C:\Users\USER\Desktop\robotics_lab\Labs\common\Aruco_Tracker-master\calib_images/tests/*.jpg'
+PATH  = r'C:\Users\admin\Documents\robotics_lab\Labs\common\Aruco_Tracker-master\calib_images/tests/*.jpg'
+# PATH = r'C:\Users\USER\Desktop\robotics_lab\Labs\common\Aruco_Tracker-master\calib_images/tests/*.jpg'
 class aruco_track():
 
     def __init__(self, channel=0, cbrow=6, cbcol=9, path=PATH, shape=aruco.DICT_4X4_250):

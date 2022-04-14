@@ -121,9 +121,9 @@ class KinovaVS(object):
         twist.linear_x = vel[0] * 1
         twist.linear_y = vel[1] * 1
         twist.linear_z = vel[2] * 1
-        twist.angular_x = vel[3] * 100
-        twist.angular_y = vel[4] * 100
-        twist.angular_z = vel[5] * 100
+        twist.angular_x = vel[3] * 50
+        twist.angular_y = vel[4] * 50
+        twist.angular_z = vel[5] * 50
 
         base.SendTwistCommand(command)
 

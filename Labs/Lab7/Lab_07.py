@@ -5,7 +5,7 @@ sys.path.insert(0, r'../common/Aruco_Tracker-master')
 from aruco_module import aruco_track
 from kinova import KinovaVS
 from visual_servoing import PBVS
-
+import cv2
 if os.name == 'nt':
   import msvcrt
 else:
@@ -45,32 +45,33 @@ if __name__ == '__main__':
             try:
                 """ Capture target frame
                     Set the desired transform we want to achieve from the marker"""
-                track_transform = input('Press Enter to the target frame ([tag_0])\n')
+                track_transform = input('Press Enter to set the target frame ([tag])\n')
                 t_target, R_target, _ = tracker.track()
                 t_target, R_target = t_target.squeeze(), R_target.squeeze()
-                R_target = R.from_rotvec(R_target).as_quat()
+                R_target = R.from_rotvec(R_target).as_matrix()
             except:
-                print('Error! Cannot find [tag_0] to [desired_camera_frame] transform')
+                print('Error! Cannot find [tag] to [camera_frame] transform')
                 sys.exit(0)
 
             controller.set_target_feature(t_target, R_target)
 
-            # set up the kinova
+            # set up the Kinova
 
             while True:  # TODO: add safety condition
                 # get pose estimation from tracker node
                 try:
                     t_curr, R_curr, _ = tracker.track()
                     t_curr, R_curr = t_curr.squeeze(), R_curr.squeeze()
-                    R_curr = R.from_rotvec(R_curr).as_quat()
-                    vel_cam, error = controller.caculate_vel(t_curr, R_curr)  # calc vel w.r.t camera frame
-                    vel_body, vel_ee = kinova_vs.body_frame_twist(vel_cam, base_cyclic) # convert cam_vel to vel w.r.t body frame
+                    R_curr = R.from_rotvec(R_curr).as_matrix()
+                    vel_cam, error = controller.caculate_vel(t_curr, R_curr)
+                    vel_body, vel_ee = kinova_vs.body_frame_twist(vel_cam, base_cyclic)
                     print("Error: {:3.3f}, {:3.3f}, {:3.3f}, {:3.3f}, {:3.3f}, {:3.3f}".format(error[0], error[1],
                                                                                                error[2], error[3],
                                                                                                error[4], error[5]))
-
+                    if cv2.waitKey(1) & 0xFF == ord('q'):
+                        break
                 except:
-                    print('Error! Cannot find [tag_0] to [desired_camera_frame] transform')
+                    print('Error! Cannot find [tag] to [camera_frame] transform')
                     vel_body = vel_cam = vel_ee = [0, 0, 0, 0, 0, 0]
 
                 kinova_vs.set_joint_vel(vel_ee, base, base_cyclic)

@@ -19,10 +19,7 @@ def calculate_error(t_curr, R_curr, target_feature_t, target_feature_R, translat
     # of Chaumette, Francois, and Seth Hutchinson. "Visual servo control. I. Basic approaches."
     # https://hal.inria.fr/inria-00350283/document
 
-    t_del = t_curr - target_feature_t
-    R_del = np.dot(target_feature_R, R_curr.T)
-    R_del_homo = np.vstack((np.hstack((R_del, np.zeros((3, 1)))), np.array([0, 0, 0, 1])))
-    (theta, u, _) = transformations.rotation_from_matrix(R_del_homo)
+
 
     if translation_only:
         error = np.hstack((t_del, np.zeros(3)))
@@ -42,22 +39,6 @@ def feature_jacobian(t_curr, R_curr, target_feature_R):
     '''
 
 
-    R_del = np.dot(target_feature_R, R_curr.T)
-    R_del_homo = np.vstack((np.hstack((R_del, np.zeros((3, 1)))), np.array([0, 0, 0, 1])))
-
-    (theta, u, _) = transformations.rotation_from_matrix(R_del_homo)
-
-    skew_symmetric = modern_robotics.VecToso3
-
-    skew_t = skew_symmetric(t_curr)
-    L_theta_u = np.identity(3) - (theta / 2) * np.array(skew_symmetric(u)) + (
-                1 - (np.sinc(theta) / ((np.sinc(theta / 2)) ** 2))) * np.dot(np.array(skew_symmetric(u)),
-                                                                             np.array(skew_symmetric(u)))
-
-    L_top = np.hstack((-np.identity(3), skew_t))
-    L_bottom = np.hstack((np.zeros((3, 3)), L_theta_u))
-
-    L_out = np.vstack((L_top, L_bottom))
 
     return L_out
 
@@ -71,6 +52,5 @@ def control(L, error, _lambda):
             [nu_c, omg_c], 1x6
     '''
 
-    vel = -_lambda * np.dot(np.linalg.pinv(L), error)
 
     return vel
