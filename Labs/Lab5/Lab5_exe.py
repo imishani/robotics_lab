@@ -1,20 +1,42 @@
+"""
+All right reserved to  Itamar Mishani and Osher Azulay
+imishani@gmail.com, osherazulay@mail.tau.ac.il
+"""
+
 import matplotlib.pyplot as plt
 import numpy as np
 import time
 import math
 from scipy.spatial.transform import Rotation as R
-import sys
+import sys, os
 
 sys.path.insert(0, r'../common/Aruco_Tracker-master')
 from aruco_module import aruco_track
 from Lab5_car import path_planning
 from car_control import Controller
 import cv2
-from tqdm import tqdm
 
 axes_origin_ID = 16
 s = time.time()
 
+def save(saver):
+    logdir_prefix = 'lab-05'
+
+    data_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Lab5/data')
+
+    if not (os.path.exists(data_path)):
+        os.makedirs(data_path)
+
+    logdir = logdir_prefix + '_' + time.strftime("%d-%m-%Y_%H-%M-%S")
+    logdir = os.path.join(data_path, logdir)
+    if not (os.path.exists(logdir)):
+        os.makedirs(logdir)
+
+    print("\n\n\nLOGGING TO: ", logdir, "\n\n\n")
+
+    import pickle
+    with open(logdir + '/data' + '.pkl', 'wb') as h:
+        pickle.dump(saver, h)
 
 def calc_motor_command(angle):
     x = angle / 180.
@@ -26,7 +48,6 @@ def calc_motor_command(angle):
         right = 2 * x + 1
     left = math.copysign(1, left) - left * 0.5
     right = math.copysign(1, right) - right * 0.5
-    # print(f'Left {left} right {right}')
     return left, right
 
 
@@ -39,12 +60,11 @@ def camera_data(t_curr, R_curr, ids, next_goal):
             homo[ids[i]] = np.vstack((np.hstack((rot[ids[i]], trans[ids[i]].reshape(-1, 1))), np.array([[0, 0, 0, 1]])))
         next = np.dot(np.linalg.inv(homo[4]) @ homo[16], np.hstack((np.array(next_goal)[::-1], np.array([0, 1]))).T)
         phi = np.rad2deg(np.arctan2(next[0], next[1]))
-        # print(f'phi is: {phi}')
-        # print(f'next goal is: {next}')
-        plt.plot((np.linalg.inv(homo[axes_origin_ID]) @ homo[car_ID])[1, 3],
-                 (np.linalg.inv(homo[axes_origin_ID]) @ homo[car_ID])[0, 3], 'ko', ms=2., alpha=0.4)
+        curr_x, curr_y = (np.linalg.inv(homo[axes_origin_ID]) @ homo[car_ID])[1, 3], \
+                         (np.linalg.inv(homo[axes_origin_ID]) @ homo[car_ID])[0, 3]
+        plt.plot(curr_x, curr_y, 'ko', ms=2., alpha=0.4)
         plt.draw()
-        return phi, next
+        return phi, next, (curr_x, curr_y)
     except:
         print('Error! Cannot detect frames')
         cntrlr.motor_command(1., 1.)
@@ -79,24 +99,25 @@ if __name__ == "__main__":
     path_ = path_planning((homo[car_ID][:2, 3] - homo[axes_origin_ID][:2, 3]).tolist(),
                           (homo[goal_ID][:2, 3] - homo[axes_origin_ID][:2, 3]).tolist(),
                           obstacleList=obs, show_animation=True)
-    path_ = path_[::-1][1:]
 
     # Apply CL plan tracking:
+    executed_path = []
     while cntrlr.Connected:
         tolerance = 1.001
         i = 1
         for next_goal in path_:
-            err = 10e2
-            while np.linalg.norm(err) > tolerance:
+            next_ = 10e2
+            while np.linalg.norm(next_) > tolerance:
                 print(f'Attempting to reach point: {i} of {len(path_)}')
                 t_curr, R_curr, ids = tracker.track()
                 try:
-                    phi, err = camera_data(t_curr, R_curr, ids, next_goal)
-                    print(f' Phi: {round(phi)}, error: {err[:2]}\n')
+                    phi, next_, curr = camera_data(t_curr, R_curr, ids, next_goal)
+                    print(f' Phi: {round(phi)}, error: {next_[:2]}\n')
                 except:
                     continue
-                if np.linalg.norm(err) <= tolerance:
+                if np.linalg.norm(next_) <= tolerance:
                     cntrlr.motor_command(1, 1)
+                    executed_path.append(list(curr))
                     continue
                 left, right = calc_motor_command(phi)
                 cntrlr.motor_command(-left, -right)
@@ -109,4 +130,7 @@ if __name__ == "__main__":
         cntrlr.motor_command(1., 1.)
         tracker.cap.release()
         cv2.destroyAllWindows()
+        if input('Save data? (y,n)   ') == 'y':
+            save([path_, executed_path])
+            print('Saved data as list of size 2 where first element is planned path and second is executed path!')
         sys.exit(0)

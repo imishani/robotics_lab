@@ -1,3 +1,8 @@
+"""
+All right reserved to  Itamar Mishani and Osher Azulay
+imishani@gmail.com, osherazulay@mail.tau.ac.il
+"""
+
 import numpy as np
 import time
 
