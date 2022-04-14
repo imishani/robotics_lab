@@ -93,11 +93,10 @@ class KinovaVS(object):
         Input: twist, [nu, omg], 1x6
         '''
 
-        # # Calculate joint velocities to achieve desired velocity
         # actuator_count = base.GetActuatorCount().count
         # Q = []
         # for joint_id in range(actuator_count):
-        #     Q.append(np.deg2rad(base_cyclic.RefreshFeedback().actuators[joint_id].position))
+        #     Q.append(base_cyclic.RefreshFeedback().actuators[joint_id].position)
         #
         # joint_vels = np.dot(np.linalg.pinv(Jacobian(Q)), vel_b)
         #
@@ -147,3 +146,18 @@ class KinovaVS(object):
         base.SendJointSpeedsCommand(joint_speeds)
         time.sleep(0.01)
 
+
+    def feedback(self, base_cyclic):
+        cur_joint, cur_end_xyz, cur_end_euler = [], [],[]
+        for i in range(6):
+            cur_joint.append(base_cyclic.RefreshFeedback().actuators[i].position)
+
+        cur_end_xyz = [base_cyclic.RefreshFeedback().base.tool_pose_x,
+                       base_cyclic.RefreshFeedback().base.tool_pose_y,
+                       base_cyclic.RefreshFeedback().base.tool_pose_z]
+
+        cur_end_euler = [base_cyclic.RefreshFeedback().base.tool_pose_theta_x,
+                        base_cyclic.RefreshFeedback().base.tool_pose_theta_y,
+                        base_cyclic.RefreshFeedback().base.tool_pose_theta_z]
+
+        return cur_joint, cur_end_xyz, cur_end_euler

@@ -78,7 +78,7 @@ if __name__ == '__main__':
                 print("TCP Vel Command: {:3.3f}, {:3.3f}, {:3.3f}, {:3.3f}, {:3.3f}, {:3.3f}\n".format(vel_ee[0], vel_ee[1],
                                                                                              vel_ee[2], vel_ee[3],
                                                                                              vel_ee[4], vel_ee[5]))
-
+                cur_joint, cur_end_xyz, cur_end_euler = kinova_vs.feedback(base_cyclic)
 
     except KeyboardInterrupt:
         pass
