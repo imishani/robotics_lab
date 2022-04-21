@@ -183,17 +183,19 @@ def static_load(base_cyclic, ft):
             cur_torque[i] = base_cyclic.RefreshFeedback().actuators[i].torque
             theta_dict.update({'q' + str(i + 1): np.deg2rad(cur_joint[i])})
         J = np.matrix(arm.jacobian_mat.evalf(subs=theta_dict, chop=True, maxn=10)).astype(np.float64)
+        J2 = sts.jacobian(cur_joint)[-1]
+        J2 = np.vstack((J2[:,::-1][3:,:], J2[:,::-1][:3,:]))
         F = ft.get_forces()
         G = sts.gravity(cur_joint)
         # F = ft.get_reading()  # Fx,Fy,Fz, Mx,My,Mz
-        tau = G - J.T.dot(F)  # estimated
+        tau = G - J2.T.dot(F)  # estimated
         error = tau - cur_torque
         # if ft_bias is None:
         #     ft_bias = cur_torque.copy()
-        print("F: " + str(F))
+        print("\nF: " + str(F))
         # print("cur_torque: " + str((cur_torque - ft_bias).tolist()))
-        print("cur_torque: " + str(cur_torque.tolist()))
-        print("cur_tau: " + str(tau.tolist()))
+        print("robot torque: " + str(np.round(cur_torque,3)))
+        print("calculated torque: " + str(np.round(tau,3)))
 
 def dynamic_test(base, base_cyclic):
     success = True
@@ -311,7 +313,7 @@ if __name__ == "__main__":
                         print('Huston, we have a problem, please call the instructor')
 
                 if str(key) == 'c' or str(key) == 'C':
-
+                    success &= move_to_press_position(base)
                     success &= static_load(base_cyclic, ft)
                     if success:
                         print('Successfully moved')
