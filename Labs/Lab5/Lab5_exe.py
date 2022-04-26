@@ -12,7 +12,7 @@ import sys, os
 
 sys.path.insert(0, r'../common/Aruco_Tracker-master')
 from aruco_module import aruco_track
-from Lab5_car import path_planning
+from Lab5_car import path_planning, steering_angle
 from car_control import Controller
 import cv2
 
@@ -58,13 +58,12 @@ def camera_data(t_curr, R_curr, ids, next_goal):
             trans[ids[i]] = t_curr[i, :]
             rot[ids[i]] = R.from_rotvec(R_curr[i, :]).as_matrix()
             homo[ids[i]] = np.vstack((np.hstack((rot[ids[i]], trans[ids[i]].reshape(-1, 1))), np.array([[0, 0, 0, 1]])))
-        next = np.dot(np.linalg.inv(homo[4]) @ homo[16], np.hstack((np.array(next_goal)[::-1], np.array([0, 1]))).T)
-        phi = np.rad2deg(np.arctan2(next[0], next[1]))
-        curr_x, curr_y = (np.linalg.inv(homo[axes_origin_ID]) @ homo[car_ID])[1, 3], \
-                         (np.linalg.inv(homo[axes_origin_ID]) @ homo[car_ID])[0, 3]
+        v_next, phi = steering_angle(homo[axes_origin_ID], homo[car_ID], np.array(next_goal))
+        curr_x, curr_y = (np.linalg.inv(homo[axes_origin_ID]) @ homo[car_ID])[0, 3], \
+                         (np.linalg.inv(homo[axes_origin_ID]) @ homo[car_ID])[1, 3]
         plt.plot(curr_x, curr_y, 'ko', ms=2., alpha=0.4)
         plt.draw()
-        return phi, next, (curr_x, curr_y)
+        return phi, v_next, (curr_x, curr_y)
     except:
         print('Error! Cannot detect frames')
         cntrlr.motor_command(1., 1.)
@@ -96,8 +95,8 @@ if __name__ == "__main__":
 
     obs = ids[[i for i in range(len(ids)) if ids[i] not in [goal_ID, car_ID, axes_origin_ID]]]
     obs = [np.hstack((homo[i][:2, 3] - homo[axes_origin_ID][:2, 3], 0.06)).tolist() for i in obs]
-    path_ = path_planning((homo[car_ID][:2, 3] - homo[axes_origin_ID][:2, 3]).tolist(),
-                          (homo[goal_ID][:2, 3] - homo[axes_origin_ID][:2, 3]).tolist(),
+    path_ = path_planning((np.linalg.inv(homo[axes_origin_ID])@homo[car_ID])[:2, 3].tolist(),
+                          (np.linalg.inv(homo[axes_origin_ID])@homo[goal_ID])[:2, 3].tolist(),
                           obstacleList=obs, show_animation=True)
 
     # Apply CL plan tracking:

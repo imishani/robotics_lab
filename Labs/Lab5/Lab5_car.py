@@ -7,6 +7,7 @@ imishani@gmail.com (or imishani@andrew.cmu.edu), osherazulay@mail.tau.ac.il
 
 from RRT import RRT
 from matplotlib import pyplot as plt
+import numpy as np
 
 
 def path_planning(start, goal, obstacleList, show_animation=False, area=[-0.05, 0.65]):
@@ -29,3 +30,20 @@ def path_planning(start, goal, obstacleList, show_animation=False, area=[-0.05, 
             plt.grid(True)
             plt.pause(0.01)  # Need for Mac
         return path[::-1]
+
+def steering_angle(A_o_to_cam, A_c_to_cam, v_next_to_o):
+    """
+
+    Args:
+        A_o_to_cam: Homogeneous matrix from origin to camera frame
+        A_c_to_cam: Homogeneous matrix from car to camera frame
+        v_next_to_o: 2d vector of v_next_to_c point in path with respect to origin frame: (x, y)
+
+    Returns:
+        v_next_to_c: 2d vector of v_next_to_c point in path with respect to car frame: (x, y)
+        phi: Steering angle to v_next_to_c point.
+    """
+    v_next_to_c = np.dot(np.linalg.inv(A_c_to_cam) @ A_o_to_cam,
+                         np.hstack((np.array(v_next_to_o), np.array([0, 1]))).T)
+    phi = np.rad2deg(np.arctan2(v_next_to_c[0], v_next_to_c[1]))
+    return v_next_to_c, phi
