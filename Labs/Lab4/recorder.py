@@ -57,10 +57,10 @@ def record(base_cyclic):
                 curr_err = np.linalg.norm((xyz_list[-1,:]-xyz_list[-2,:], xyz_list[-1,:]-xyz_list[-2,:]))
                 # curr_err += np.linalg.norm((joint_list[-1, :] - joint_list[-2, :], joint_list[-1, :] - joint_list[-2, :]))
 
-            # print("Curr Gripper X {}, Y {}, Z {}".format(*cur_end_xyz))
-            # print("Curr Joints Q1 {}, Q2 {}, Q3 {}, Q4 {},  Q5 {} , Q6 {} \n To stop recording press Ctrl+C\n".format(*cur_joint))
-            print(curr_err < tol)
-            print(time.time() - timer)
+            print("Curr Gripper X {}, Y {}, Z {}".format(*cur_end_xyz))
+            print("Curr Joints Q1 {}, Q2 {}, Q3 {}, Q4 {},  Q5 {} , Q6 {} \n To stop recording press Ctrl+C\n".format(*cur_joint))
+            # print(curr_err < tol)
+            # print(time.time() - timer)
 
             if (curr_err < tol) and (xyz_list.shape[0] > 10):
                 if not time_flag:

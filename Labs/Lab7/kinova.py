@@ -148,9 +148,9 @@ class KinovaVS(object):
 
 
     def feedback(self, base_cyclic):
-        cur_joint, cur_end_xyz, cur_end_euler = [], [],[]
-        for i in range(6):
-            cur_joint.append(base_cyclic.RefreshFeedback().actuators[i].position)
+        # cur_joint, cur_end_xyz, cur_end_euler = [], [],[]
+        # for i in range(6):
+        #     cur_joint.append(base_cyclic.RefreshFeedback().actuators[i].position)
 
         cur_end_xyz = [base_cyclic.RefreshFeedback().base.tool_pose_x,
                        base_cyclic.RefreshFeedback().base.tool_pose_y,
@@ -160,4 +160,4 @@ class KinovaVS(object):
                         base_cyclic.RefreshFeedback().base.tool_pose_theta_y,
                         base_cyclic.RefreshFeedback().base.tool_pose_theta_z]
 
-        return cur_joint, cur_end_xyz, cur_end_euler
+        return cur_end_xyz, cur_end_euler

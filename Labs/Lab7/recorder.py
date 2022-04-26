@@ -33,51 +33,47 @@ def record(base_cyclic):
     cur_joint = np.zeros(len(base_cyclic.RefreshFeedback().actuators))
     joint_list = None
     xyz_list = None
+    euler_list = None
     flag = True
-    time_flag = False
-    curr_err = 10
-    tol = 1e-2
     timer = time.time()
+
     while flag == True:
+
         try:
             for i in range(len(base_cyclic.RefreshFeedback().actuators)):
                 cur_joint[i] = base_cyclic.RefreshFeedback().actuators[i].position
-                cur_end_xyz = np.array([base_cyclic.RefreshFeedback().base.tool_pose_x,
-                               base_cyclic.RefreshFeedback().base.tool_pose_y,
-                               base_cyclic.RefreshFeedback().base.tool_pose_z])
+
+            cur_end_xyz = np.array([base_cyclic.RefreshFeedback().base.tool_pose_x,
+                           base_cyclic.RefreshFeedback().base.tool_pose_y,
+                           base_cyclic.RefreshFeedback().base.tool_pose_z])
+
+            cur_end_euler = np.array([base_cyclic.RefreshFeedback().base.tool_pose_theta_x,
+                             base_cyclic.RefreshFeedback().base.tool_pose_theta_y,
+                             base_cyclic.RefreshFeedback().base.tool_pose_theta_z])
+
             if joint_list is None:
                 joint_list = cur_joint
-                xyz_list = np.array([base_cyclic.RefreshFeedback().base.tool_pose_x,
-                               base_cyclic.RefreshFeedback().base.tool_pose_y,
-                               base_cyclic.RefreshFeedback().base.tool_pose_z])
-
+                xyz_list = cur_end_xyz
+                euler_list = cur_end_euler
             else:
                 joint_list = np.vstack((joint_list, cur_joint))
                 xyz_list = np.vstack((xyz_list, cur_end_xyz))
-                curr_err = np.linalg.norm((xyz_list[-1,:]-xyz_list[-2,:], xyz_list[-1,:]-xyz_list[-2,:]))
-                # curr_err += np.linalg.norm((joint_list[-1, :] - joint_list[-2, :], joint_list[-1, :] - joint_list[-2, :]))
+                euler_list = np.vstack((euler_list, cur_end_euler))
 
             print("Curr Gripper X {}, Y {}, Z {}".format(*cur_end_xyz))
+            print("Curr Gripper roll {}, pitch {}, yaw {}".format(*cur_end_euler))
             print("Curr Joints Q1 {}, Q2 {}, Q3 {}, Q4 {},  Q5 {} , Q6 {} \n To stop recording press Ctrl+C\n".format(*cur_joint))
-            # print(curr_err < tol)
-            # print(time.time() - timer)
 
-            if (curr_err < tol) and (xyz_list.shape[0] > 10):
-                if not time_flag:
-                    time_flag = True
-                    timer = time.time()
-
-                if time.time() - timer > 10.:
-                    return (joint_list, xyz_list)
-            else:
-                time_flag = False
+            if time.time() - timer > 100.:
+                return (joint_list, xyz_list, euler_list)
 
         except KeyboardInterrupt:
-            return (joint_list, xyz_list)
+            return (joint_list, xyz_list, euler_list)
+
 
 def save():
     global joint_trajectory
-    logdir_prefix = 'lab-04'
+    logdir_prefix = 'lab-07'
 
     data_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), './data')
 

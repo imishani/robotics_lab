@@ -14,6 +14,9 @@ else:
 from kortex_api.autogen.client_stubs.BaseClientRpc import BaseClient
 from kortex_api.autogen.client_stubs.BaseCyclicClientRpc import BaseCyclicClient
 from scipy.spatial.transform import Rotation as R
+import subprocess
+import sys, select, os
+import time
 
 if __name__ == '__main__':
 
@@ -56,6 +59,10 @@ if __name__ == '__main__':
             controller.set_target_feature(t_target, R_target)
 
             # set up the Kinova
+            cmd = 'start cmd /D /C "python recorder.py && pause"'
+            pro = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                                   shell=True, stdin=subprocess.PIPE)
+            time.sleep(1.)
 
             while True:  # TODO: add safety condition
                 # get pose estimation from tracker node
@@ -78,7 +85,7 @@ if __name__ == '__main__':
                 print("TCP Vel Command: {:3.3f}, {:3.3f}, {:3.3f}, {:3.3f}, {:3.3f}, {:3.3f}\n".format(vel_ee[0], vel_ee[1],
                                                                                              vel_ee[2], vel_ee[3],
                                                                                              vel_ee[4], vel_ee[5]))
-                cur_joint, cur_end_xyz, cur_end_euler = kinova_vs.feedback(base_cyclic)
+
 
     except KeyboardInterrupt:
         pass
