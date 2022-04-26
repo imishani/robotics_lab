@@ -17,3 +17,16 @@ def path_planning(start, goal, obstacleList, area=[-0.05, 0.65], **args):
     """
     pass
 
+def steering_angle(A_o_to_cam, A_c_to_cam, v_next_to_o):
+    """
+
+    Args:
+        A_o_to_cam: Homogeneous matrix from origin to camera frame
+        A_c_to_cam: Homogeneous matrix from car to camera frame
+        v_next_to_o: 2d vector of v_next_to_c point in path with respect to origin frame: (x, y)
+
+    Returns:
+        v_next_to_c: 2d vector of v_next_to_c point in path with respect to car frame: (x, y)
+        phi: Steering angle to v_next_to_c point.
+    """
+    pass
