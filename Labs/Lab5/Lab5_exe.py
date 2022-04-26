@@ -73,6 +73,7 @@ def camera_data(t_curr, R_curr, ids, next_goal):
 if __name__ == "__main__":
 
     tracker = aruco_track()
+    axes_origin_ID = int(input('Enter origin ID:   '))
     car_ID = int(input('Enter car ID:   '))
     goal_ID = int(input('Enter goal ID:   '))
     cntrlr = Controller(car_ID)  # input car ID
@@ -92,7 +93,11 @@ if __name__ == "__main__":
         sys.exit(0)
 
     # Plan a path:
-
+    # i = 0
+    # while not cntrlr.communicate:
+    #     if i % 50:
+    #         print('Trying to connect the car!')
+    #     i += 1
     obs = ids[[i for i in range(len(ids)) if ids[i] not in [goal_ID, car_ID, axes_origin_ID]]]
     obs = [np.hstack((homo[i][:2, 3] - homo[axes_origin_ID][:2, 3], 0.06)).tolist() for i in obs]
     path_ = path_planning((np.linalg.inv(homo[axes_origin_ID])@homo[car_ID])[:2, 3].tolist(),
@@ -101,7 +106,7 @@ if __name__ == "__main__":
 
     # Apply CL plan tracking:
     executed_path = []
-    while cntrlr.Connected:
+    while cntrlr.Connected: #and cntrlr.communicate:
         tolerance = 1.001
         i = 1
         for next_goal in path_:
@@ -111,7 +116,7 @@ if __name__ == "__main__":
                 t_curr, R_curr, ids = tracker.track()
                 try:
                     phi, next_, curr = camera_data(t_curr, R_curr, ids, next_goal)
-                    print(f' Phi: {round(phi)}, error: {next_[:2]}\n')
+                    print(f' Phi: {round(phi)}, error: {next_[:2]}\n Distance: {np.linalg.norm(next_)}')
                 except:
                     continue
                 if np.linalg.norm(next_) <= tolerance:
