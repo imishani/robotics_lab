@@ -14,7 +14,7 @@ def path_planning(start, goal, obstacleList, area=[-0.05, 0.65], **args):
     Returns:
         path: [[x_1, y_1], [x_2, y_2], ..., [x_M, y_M]] --> List of lists of size 2 (x, y).
                 Important: Make sure that your output 'path' is in the right order (from start to goal)
-    """
+    """3
     pass
 
 def steering_angle(A_o_to_cam, A_c_to_cam, v_next_to_o):

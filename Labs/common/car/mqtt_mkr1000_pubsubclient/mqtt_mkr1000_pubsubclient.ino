@@ -23,7 +23,7 @@ const char pass[] = "12345678";
 //const char ssid[] = "anton";
 //const char pass[] = "12345678";
 
-const char ID[] = "4";
+const char ID[] = "1";
 
 // motor control consts and vars
 const byte M1PWM = 2;
