@@ -17,8 +17,10 @@ from scipy.spatial.transform import Rotation as R
 import subprocess
 import sys, select, os
 import time
+from recorder import *
 
 if __name__ == '__main__':
+
 
     try:
 
@@ -43,6 +45,8 @@ if __name__ == '__main__':
             controller = PBVS()
             controller._translation_only = False
             tracker = aruco_track()
+            controller._lambda = 0.1
+            vel_list, error_list, T_bh_list = [], [], []
             # set target pose
 
             try:
@@ -58,34 +62,34 @@ if __name__ == '__main__':
 
             controller.set_target_feature(t_target, R_target)
 
-            # set up the Kinova
-            cmd = 'start cmd /D /C "python recorder.py && pause"'
-            pro = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                                   shell=True, stdin=subprocess.PIPE)
-            time.sleep(1.)
 
-            while True:  # TODO: add safety condition
+            while True:
                 # get pose estimation from tracker node
                 try:
                     t_curr, R_curr, _ = tracker.track()
                     t_curr, R_curr = t_curr.squeeze(), R_curr.squeeze()
                     R_curr = R.from_rotvec(R_curr).as_matrix()
                     vel_cam, error = controller.caculate_vel(t_curr, R_curr)
-                    vel_body, vel_ee = kinova_vs.body_frame_twist(vel_cam, base_cyclic)
+                    vel_body, vel_ee, T_bh = kinova_vs.body_frame_twist(vel_cam, base_cyclic)
                     print("Error: {:3.3f}, {:3.3f}, {:3.3f}, {:3.3f}, {:3.3f}, {:3.3f}".format(error[0], error[1],
                                                                                                error[2], error[3],
                                                                                                error[4], error[5]))
                     if cv2.waitKey(1) & 0xFF == ord('q'):
                         break
+
                 except:
                     print('Error! Cannot find [tag] to [camera_frame] transform')
                     vel_body = vel_cam = vel_ee = [0, 0, 0, 0, 0, 0]
+
 
                 kinova_vs.set_joint_vel(vel_ee, base, base_cyclic)
                 print("TCP Vel Command: {:3.3f}, {:3.3f}, {:3.3f}, {:3.3f}, {:3.3f}, {:3.3f}\n".format(vel_ee[0], vel_ee[1],
                                                                                              vel_ee[2], vel_ee[3],
                                                                                              vel_ee[4], vel_ee[5]))
-
+                vel_list.append(vel_ee)
+                error_list.append(error)
+                T_bh_list.append(T_bh)
 
     except KeyboardInterrupt:
+        save_data((vel_list, error_list, T_bh_list))
         pass
