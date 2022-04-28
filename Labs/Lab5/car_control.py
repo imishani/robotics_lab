@@ -24,6 +24,7 @@ class Controller():
         self.Connected = False
         self.command_max = 255
         self.command_min = -255
+        self.communicate = False
 
     def connect(self):
         self.client.connect(self.broker_address, port=self.port)
@@ -49,6 +50,7 @@ class Controller():
     def msg_setup(self, client, msg):
         id = str(msg.payload.decode("utf-8"))
         print(f'robot connected. ID: {id}')
+        self.communicate = True
 
     def motor_command(self, L, R):
         """

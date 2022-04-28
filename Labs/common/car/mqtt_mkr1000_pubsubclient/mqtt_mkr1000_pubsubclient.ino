@@ -15,15 +15,15 @@
 
 //169,254,103,61  192,168,2,100
 //IPAddress server(169,254,103,61); //station IP (localhost)
-IPAddress server(192,168,2,102); //station IP (localhost)
+IPAddress server(192,168,2,100); //station IP (localhost)
 
 const char ssid[] = "RobLabStud";
 const char pass[] = "12345678";
-
+ 
 //const char ssid[] = "anton";
 //const char pass[] = "12345678";
 
-const char ID[] = "1";
+const char ID[] = "2";
 
 // motor control consts and vars
 const byte M1PWM = 2;
@@ -80,9 +80,9 @@ void reconnect() {
       char  temp[3]; //temporal data
       sprintf(temp, ID);
       
-      client.publish("setup/4", temp);
+      client.publish("setup/2", temp);
       // ... and resubscribe
-      client.subscribe("command/4");
+      client.subscribe("command/2");
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
@@ -153,7 +153,7 @@ void execute(int L, int R) //received command execution
   digitalWrite(M2PH, dir_B);
   analogWrite(M1PWM, abs(L));
   analogWrite(M2PWM, abs(R));
-  //Serial.println("received command");
+  Serial.println("received command");
 }
   
 
