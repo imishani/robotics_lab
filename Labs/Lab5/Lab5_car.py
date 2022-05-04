@@ -10,7 +10,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 
 
-def path_planning(start, goal, obstacleList, show_animation=False, area=[-0.05, 0.65]):
+def planner(start, goal, obstacleList, show_animation=False, area=[-0.05, 0.65]):
     rrt = RRT(
         start=start,
         goal=goal,

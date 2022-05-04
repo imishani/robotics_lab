@@ -1,6 +1,6 @@
 """
 All right reserved to  Itamar Mishani and Osher Azulay
-imishani@gmail.com, osherazulay@mail.tau.ac.il
+imishani@gmail.com (or imishani@andrew.cmu.edu), osherazulay@mail.tau.ac.il
 """
 
 import matplotlib.pyplot as plt
@@ -12,7 +12,7 @@ import sys, os
 
 sys.path.insert(0, r'../common/Aruco_Tracker-master')
 from aruco_module import aruco_track
-from Lab5_car import path_planning, steering_angle
+from Lab5_car import planner, steering_angle
 from car_control import Controller
 import cv2
 
@@ -92,15 +92,10 @@ if __name__ == "__main__":
         print('Error! Cannot detect frames')
         sys.exit(0)
 
-    # Plan a path:
-    # i = 0
-    # while not cntrlr.communicate:
-    #     if i % 50:
-    #         print('Trying to connect the car!')
-    #     i += 1
+
     obs = ids[[i for i in range(len(ids)) if ids[i] not in [goal_ID, car_ID, axes_origin_ID]]]
     obs = [np.hstack((homo[i][:2, 3] - homo[axes_origin_ID][:2, 3], 0.06)).tolist() for i in obs]
-    path_ = path_planning((np.linalg.inv(homo[axes_origin_ID])@homo[car_ID])[:2, 3].tolist(),
+    path_ = planner((np.linalg.inv(homo[axes_origin_ID])@homo[car_ID])[:2, 3].tolist(),
                           (np.linalg.inv(homo[axes_origin_ID])@homo[goal_ID])[:2, 3].tolist(),
                           obstacleList=obs, show_animation=True)
 

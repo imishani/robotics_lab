@@ -224,7 +224,7 @@ if __name__ == "__main__":
                 if str(key) == 'o' or str(key) == 'O':
                     success &= OpeningGripperCommands(base)
                     if success:
-                        print('Successfully closed the gripper')
+                        print('Successfully opened the gripper')
                         display = True
                     else:
                         print('Huston, we have a problem, please call the instructor')
