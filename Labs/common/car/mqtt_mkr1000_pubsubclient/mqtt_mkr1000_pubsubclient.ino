@@ -14,8 +14,8 @@
 #include <ArduinoJson.h>
 
 //169,254,103,61  192,168,2,100
-//IPAddress server(169,254,103,61); //station IP (localhost)
-IPAddress server(192,168,2,100); //station IP (localhost)
+//IPAddress server(192,168,2,100); //station IP (localhost)
+IPAddress server(192,168,2,102); //station IP (localhost)
 
 const char ssid[] = "RobLabStud";
 const char pass[] = "12345678";
