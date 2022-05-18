@@ -79,17 +79,18 @@ def camera_data():
         print('Error! Cannot detect frames')
         cntrlr.motor_command(1., 1.)
 
-def move(origin, current, goal):
+def align_steering_angle(origin, current, goal):
     '''
 
     Args:
-        origin: Homo
-        current: Homo
-        goal: vec
+        origin:
+        current:
+        goal:
 
     Returns:
 
     '''
+
     v_next, phi = steering_angle(origin, current, goal)
     left, right = calc_motor_command(phi)
     cntrlr.motor_command(left, right)
