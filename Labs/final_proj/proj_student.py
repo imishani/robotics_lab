@@ -14,7 +14,7 @@ sys.path.insert(0, r'../common/Aruco_Tracker-master')
 sys.path.insert(0, r'../Lab5')
 
 from aruco_module import aruco_track
-from Lab5_car import planner, steering_angle
+from Lab5_car import planner
 from car_control import Controller
 import cv2
 
@@ -38,7 +38,6 @@ def save(saver):
     with open(logdir + '/data' + '.pkl', 'wb') as h:
         pickle.dump(saver, h)
 
-
 def calc_motor_command(angle):
     '''
 
@@ -59,8 +58,7 @@ def calc_motor_command(angle):
     right = math.copysign(1, right) - right * 0.5
     return -left, -right
 
-
-def camera_data():
+def field_status():
     '''
     w.r.t camera frame
     Returns:
@@ -74,26 +72,14 @@ def camera_data():
             trans[ids[i]] = t_curr[i, :]
             rot[ids[i]] = R.from_rotvec(R_curr[i, :]).as_matrix()
             homo[ids[i]] = np.vstack((np.hstack((rot[ids[i]], trans[ids[i]].reshape(-1, 1))), np.array([[0, 0, 0, 1]])))
-        return homo
+        # Note that everything is with respect to the camera frame!
+        return {'p_r': np.linalg.inv(homo[axes_user_ID]) @ homo[car_ID],
+                'p_d': np.linalg.inv(homo[axes_user_ID]) @ homo[disc_ID],
+                'p_o': np.linalg.inv(homo[axes_user_ID]) @ homo[opponent_ID]}
     except:
         print('Error! Cannot detect frames')
         cntrlr.motor_command(1., 1.)
 
-def align_steering_angle(origin, current, goal):
-    '''
-
-    Args:
-        origin:
-        current:
-        goal:
-
-    Returns:
-
-    '''
-
-    v_next, phi = steering_angle(origin, current, goal)
-    left, right = calc_motor_command(phi)
-    cntrlr.motor_command(left, right)
 
 
 if __name__ == "__main__":
@@ -103,7 +89,6 @@ if __name__ == "__main__":
     axes_user_ID = int(input('Enter axes user ID:   '))
     car_ID = int(input('Enter car ID:   '))
     opponent_ID = int(input('Enter opponent ID:   '))
-    axes_opponent_ID = int(input('Enter axes opponent ID:   '))
     disc_ID = int(input('Enter disc ID:   '))
 
     cntrlr = Controller(car_ID)  # input car ID
@@ -114,7 +99,6 @@ if __name__ == "__main__":
     executed_path = []
 
     while cntrlr.Connected: #and cntrlr.communicate:
-        print(camera_data())
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             cntrlr.motor_command(1, 1)
