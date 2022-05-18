@@ -73,9 +73,11 @@ def field_status():
             rot[ids[i]] = R.from_rotvec(R_curr[i, :]).as_matrix()
             homo[ids[i]] = np.vstack((np.hstack((rot[ids[i]], trans[ids[i]].reshape(-1, 1))), np.array([[0, 0, 0, 1]])))
         # Note that everything is with respect to the camera frame!
-        return {'p_r': np.linalg.inv(homo[axes_user_ID]) @ homo[car_ID],
-                'p_d': np.linalg.inv(homo[axes_user_ID]) @ homo[disc_ID],
-                'p_o': np.linalg.inv(homo[axes_user_ID]) @ homo[opponent_ID]}
+        p_r = np.linalg.inv(homo[axes_user_ID]) @ homo[car_ID]
+        p_o = np.linalg.inv(homo[axes_user_ID]) @ homo[opponent_ID]
+        p_d = np.linalg.inv(homo[axes_user_ID]) @ homo[disc_ID]
+        return p_r, p_o, p_d
+
     except:
         print('Error! Cannot detect frames')
         cntrlr.motor_command(1., 1.)
