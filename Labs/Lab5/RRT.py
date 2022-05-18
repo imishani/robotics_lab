@@ -54,6 +54,7 @@ class RRT:
         self.goal_sample_rate = goal_sample_rate
         self.max_iter = max_iter
         self.obstacle_list = obstacle_list
+
         self.node_list = []
 
     def planning(self, animation=True):
@@ -222,7 +223,9 @@ def main(gx=6.0, gy=10.0):
     if path is None:
         print("Cannot find path")
     else:
+
         print("found path!!")
+
 
         # Draw final path
         if show_animation:

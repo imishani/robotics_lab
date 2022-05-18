@@ -13,10 +13,11 @@ import sys, os
 sys.path.insert(0, r'../common/Aruco_Tracker-master')
 from aruco_module import aruco_track
 from Lab5_car import planner, steering_angle
+# from Lab5_student import planner, steering_angle
+
 from car_control import Controller
 import cv2
 
-axes_origin_ID = 16
 s = time.time()
 
 def save(saver):
@@ -52,11 +53,12 @@ def calc_motor_command(angle):
 
 
 def camera_data(t_curr, R_curr, ids, next_goal):
+    e = 0.1
     try:
         t_curr, R_curr, ids = t_curr.squeeze(), R_curr.squeeze(), ids.squeeze()
         for i in range(len(ids)):
-            trans[ids[i]] = t_curr[i, :]
-            rot[ids[i]] = R.from_rotvec(R_curr[i, :]).as_matrix()
+            trans[ids[i]] = e * trans[ids[i]] + (1-e) * t_curr[i, :]
+            rot[ids[i]] = e * rot[ids[i]] + (1-e) * R.from_rotvec(R_curr[i, :]).as_matrix()
             homo[ids[i]] = np.vstack((np.hstack((rot[ids[i]], trans[ids[i]].reshape(-1, 1))), np.array([[0, 0, 0, 1]])))
         v_next, phi = steering_angle(homo[axes_origin_ID], homo[car_ID], np.array(next_goal))
         curr_x, curr_y = (np.linalg.inv(homo[axes_origin_ID]) @ homo[car_ID])[0, 3], \
@@ -73,9 +75,9 @@ def camera_data(t_curr, R_curr, ids, next_goal):
 if __name__ == "__main__":
 
     tracker = aruco_track()
-    axes_origin_ID = int(input('Enter origin ID:   '))
-    car_ID = int(input('Enter car ID:   '))
-    goal_ID = int(input('Enter goal ID:   '))
+    axes_origin_ID = 1   #int(input('Enter origin ID:   '))
+    car_ID = 2   #int(input('Enter car ID:   '))
+    goal_ID = 13   # int(input('Enter goal ID:   '))
     cntrlr = Controller(car_ID)  # input car ID
     cntrlr.connect()
     time.sleep(1)
@@ -94,29 +96,32 @@ if __name__ == "__main__":
 
 
     obs = ids[[i for i in range(len(ids)) if ids[i] not in [goal_ID, car_ID, axes_origin_ID]]]
-    obs = [np.hstack((homo[i][:2, 3] - homo[axes_origin_ID][:2, 3], 0.06)).tolist() for i in obs]
+    # obs = [np.hstack((homo[i][:2, 3] - homo[axes_origin_ID][:2, 3], 0.05)).tolist() for i in obs]
+    obs = [np.hstack(((np.linalg.inv(homo[axes_origin_ID])@homo[i])[:2, 3], 0.05)).tolist() for i in obs]
+
     path_ = planner((np.linalg.inv(homo[axes_origin_ID])@homo[car_ID])[:2, 3].tolist(),
                           (np.linalg.inv(homo[axes_origin_ID])@homo[goal_ID])[:2, 3].tolist(),
-                          obstacleList=obs, show_animation=True)
+                          obs, args=True)
 
     # Apply CL plan tracking:
     executed_path = []
-    while cntrlr.Connected: #and cntrlr.communicate:
-        tolerance = 1.001
+    while cntrlr.Connected:
+        tolerance = 0.015
         i = 1
         for next_goal in path_:
-            next_ = 10e2
-            while np.linalg.norm(next_) > tolerance:
-                print(f'Attempting to reach point: {i} of {len(path_)}')
+            print(f'Attempting to reach point: {i} of {len(path_)}')
+            next_ = [10e2, 10e2]
+            while np.linalg.norm(next_[:2]) > tolerance:
                 t_curr, R_curr, ids = tracker.track()
                 try:
                     phi, next_, curr = camera_data(t_curr, R_curr, ids, next_goal)
-                    print(f' Phi: {round(phi)}, error: {next_[:2]}\n Distance: {np.linalg.norm(next_)}')
+                    executed_path.append(list(curr))
+
+                    print(f' Phi: {round(phi)}, error: {next_[:2]}\n Distance: {np.linalg.norm(next_[:2])}')
                 except:
                     continue
-                if np.linalg.norm(next_) <= tolerance:
+                if np.linalg.norm(next_[:2]) <= tolerance:
                     cntrlr.motor_command(1, 1)
-                    executed_path.append(list(curr))
                     continue
                 left, right = calc_motor_command(phi)
                 cntrlr.motor_command(-left, -right)

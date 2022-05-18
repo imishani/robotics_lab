@@ -29,6 +29,7 @@ def planner(start, goal, obstacleList, show_animation=False, area=[-0.05, 0.65])
             plt.plot([x for (x, y) in path], [y for (x, y) in path], '-or', ms=4., alpha=0.5)
             plt.grid(True)
             plt.pause(0.01)  # Need for Mac
+            print(path[::-1])
         return path[::-1]
 
 def steering_angle(A_o_to_cam, A_c_to_cam, v_next_to_o):

@@ -17,8 +17,10 @@ from scipy.spatial.transform import Rotation
 
 # PATH = 'calib_images/tests/*.jpg'
 # PATH  = r'C:\Users\admin\Documents\robotics_lab\Labs\common\Aruco_Tracker-master\calib_images/tests/*.jpg'
-PATH = r'C:\Users\USER\Desktop\robotics_lab\Labs\common\Aruco_Tracker-master\calib_images/tests/*.jpg'
-# PATH = r'C:\Users\USER\Desktop\dev\robotics_lab\Labs\common\Aruco_Tracker-master\calib_images/tests/*.jpg'
+# PATH = r'C:\Users\USER\Desktop\robotics_lab\Labs\common\Aruco_Tracker-master\calib_images/tests/*.jpg'
+PATH = r'C:\Users\USER\Desktop\dev\robotics_lab\Labs\common\Aruco_Tracker-master\calib_images/tests/*.jpg'
+# PATH = r'C:\Users\USER\Desktop\dev\robotics_lab\Labs\common\Aruco_Tracker-master\test_osher/*.jpg'
+
 class aruco_track():
 
     def __init__(self, channel=0, cbrow=6, cbcol=9, path=PATH, shape=aruco.DICT_4X4_250):
@@ -38,7 +40,7 @@ class aruco_track():
         objp = np.zeros((self.cbrow * self.cbcol, 3), np.float32)
         objp[:,:2] = np.mgrid[0:self.cbcol, 0:self.cbrow].T.reshape(-1,2)
 
-        objp = objp * 0.024
+        objp = objp #* 0.024
         # arrays to store object points and image points from all the images.
         objpoints = [] # 3d point in real world space
         imgpoints = [] # 2d points in image plane.
@@ -47,9 +49,9 @@ class aruco_track():
         # in the folder
         images = glob.glob(self.path)
 
-        for fname in images:
+        for fname in images[:20]:
             img = cv2.imread(fname)
-            gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
             # find the chess board (calibration pattern) corners
             ret, corners = cv2.findChessboardCorners(gray, (self.cbcol,self.cbrow),None)
@@ -65,7 +67,11 @@ class aruco_track():
 
                 # Draw and display the corners
                 img = cv2.drawChessboardCorners(img, (self.cbcol, self.cbrow), corners2,ret)
-
+            #     cv2.imshow('frame', img)
+            #     cv2.waitKey(250)
+            # else:
+            #     cv2.imshow('frame',  cv2.imread(fname))
+            #     cv2.waitKey(250)
 
         self.ret, self.mtx, self.dist, self.rvecs, self.tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1],None,None)
 
@@ -136,7 +142,9 @@ if __name__ =='__main__':
             # print('rvec: {}, tvec: {}'.format(rvec, tvec))
             t_curr, R_curr = tvec.squeeze(), rvec.squeeze()
             R_curr = Rotation.from_rotvec(R_curr).as_euler('xyz')
-            print('rvec: {}, tvec: {}'.format(np.degrees(R_curr), t_curr))
+            # print('rvec: {}, tvec: {}'.format(np.degrees(R_curr), t_curr))
+            print(' tvec: {}'.format(t_curr))
+            print()
 
         counter += 1
         if cv2.waitKey(1) & 0xFF == ord('q'):
