@@ -1,5 +1,15 @@
-<h1>Robotics Labs, Tel Aviv University, Mechanical Engineering</h1>
+<h1>Robotics Labs Course, Tel Aviv University, Mechanical Engineering</h1>
 
+## Labs Content
+
+* **[Lab 1](/Labs/Lab1)**: Introduction to the Kinova Gen3 Lite arm
+* **[Lab 2](/Labs/Lab2)**: Forward Kinematics
+* **[Lab 3](/Labs/Lab3)**: Numerical Inverse Kinematics
+* **[Lab 4](/Labs/Lab4)**: Path Planning
+* **[Lab 5](/Labs/Lab5)**: Visual Servoing Control
+* **[Lab 6](/Labs/Lab6)**: Motion Planning for a mobile robot
+
+* **[Final Project](/Labs/final_proj)**
 
 <a id="markdown-setup-example-python-environment" name="setup-example-python-environment"></a>
 ## Installation
@@ -33,13 +43,3 @@ python -m pip install <whl relative fullpath name>.whl
 
 **Note**: Robot default IP address: ``192.168.1.10``
 
-## Labs Content
-
-* **[Lab 1](/Labs/Lab1)**: Introduction to the Kinova Gen3 Lite arm
-* **[Lab 2](/Labs/Lab2)**: Forward Kinematics
-* **[Lab 3](/Labs/Lab3)**: Numerical Inverse Kinematics
-* **[Lab 4](/Labs/Lab4)**: Path Planning
-* **[Lab 5](/Labs/Lab5)**: Visual Servoing Control
-* **[Lab 6](/Labs/Lab6)**: Motion Planning for a mobile robot
-
-* **[Final Project](/Labs/final_proj)**
