@@ -1,7 +1,7 @@
 <h1>Robotics Labs Course, Tel Aviv University, Mechanical Engineering</h1>
 
 ## Labs Content
-
+In each lab there is an instructions file. Be sure to follow it.
 * **[Lab 1](/Labs/Lab1)**: Introduction to the Kinova Gen3 Lite arm
 * **[Lab 2](/Labs/Lab2)**: Forward Kinematics
 * **[Lab 3](/Labs/Lab3)**: Numerical Inverse Kinematics
