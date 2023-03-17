@@ -100,7 +100,7 @@ if __name__ == "__main__":
 
     executed_path = []
 
-    while cntrlr.Connected: #and cntrlr.communicate:
+    while cntrlr.Connected:
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             cntrlr.motor_command(1, 1)

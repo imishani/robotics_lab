@@ -21,9 +21,9 @@ import cv2
 s = time.time()
 
 def save(saver):
-    logdir_prefix = 'lab-05'
+    logdir_prefix = 'lab-06'
 
-    data_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Lab5/data')
+    data_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Lab6/data')
 
     if not (os.path.exists(data_path)):
         os.makedirs(data_path)
