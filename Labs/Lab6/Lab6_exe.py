@@ -12,13 +12,14 @@ import sys, os
 
 sys.path.insert(0, r'../common/Aruco_Tracker-master')
 from aruco_module import aruco_track
-from Lab5_car import planner, steering_angle
-# from Lab5_student import planner, steering_angle
+from Lab6_car import planner, steering_angle
+# from Lab6_student import planner, steering_angle
 
 from car_control import Controller
 import cv2
 
 s = time.time()
+
 
 def save(saver):
     logdir_prefix = 'lab-06'
@@ -39,6 +40,7 @@ def save(saver):
     with open(logdir + '/data' + '.pkl', 'wb') as h:
         pickle.dump(saver, h)
 
+
 def calc_motor_command(angle):
     x = angle / 180.
     if x <= 0:
@@ -57,8 +59,8 @@ def camera_data(t_curr, R_curr, ids, next_goal):
     try:
         t_curr, R_curr, ids = t_curr.squeeze(), R_curr.squeeze(), ids.squeeze()
         for i in range(len(ids)):
-            trans[ids[i]] = e * trans[ids[i]] + (1-e) * t_curr[i, :]
-            rot[ids[i]] = e * rot[ids[i]] + (1-e) * R.from_rotvec(R_curr[i, :]).as_matrix()
+            trans[ids[i]] = e * trans[ids[i]] + (1 - e) * t_curr[i, :]
+            rot[ids[i]] = e * rot[ids[i]] + (1 - e) * R.from_rotvec(R_curr[i, :]).as_matrix()
             homo[ids[i]] = np.vstack((np.hstack((rot[ids[i]], trans[ids[i]].reshape(-1, 1))), np.array([[0, 0, 0, 1]])))
         v_next, phi = steering_angle(homo[axes_origin_ID], homo[car_ID], np.array(next_goal))
         curr_x, curr_y = (np.linalg.inv(homo[axes_origin_ID]) @ homo[car_ID])[0, 3], \
@@ -75,9 +77,9 @@ def camera_data(t_curr, R_curr, ids, next_goal):
 if __name__ == "__main__":
 
     tracker = aruco_track()
-    axes_origin_ID = 1   #int(input('Enter origin ID:   '))
-    car_ID = 2   #int(input('Enter car ID:   '))
-    goal_ID = 13   # int(input('Enter goal ID:   '))
+    axes_origin_ID = 1  # int(input('Enter origin ID:   '))
+    car_ID = 2  # int(input('Enter car ID:   '))
+    goal_ID = 13  # int(input('Enter goal ID:   '))
     cntrlr = Controller(car_ID)  # input car ID
     cntrlr.connect()
     time.sleep(1)
@@ -94,14 +96,13 @@ if __name__ == "__main__":
         print('Error! Cannot detect frames')
         sys.exit(0)
 
-
     obs = ids[[i for i in range(len(ids)) if ids[i] not in [goal_ID, car_ID, axes_origin_ID]]]
     # obs = [np.hstack((homo[i][:2, 3] - homo[axes_origin_ID][:2, 3], 0.05)).tolist() for i in obs]
-    obs = [np.hstack(((np.linalg.inv(homo[axes_origin_ID])@homo[i])[:2, 3], 0.05)).tolist() for i in obs]
+    obs = [np.hstack(((np.linalg.inv(homo[axes_origin_ID]) @ homo[i])[:2, 3], 0.05)).tolist() for i in obs]
 
-    path_ = planner((np.linalg.inv(homo[axes_origin_ID])@homo[car_ID])[:2, 3].tolist(),
-                          (np.linalg.inv(homo[axes_origin_ID])@homo[goal_ID])[:2, 3].tolist(),
-                          obs, args=True)
+    path_ = planner((np.linalg.inv(homo[axes_origin_ID]) @ homo[car_ID])[:2, 3].tolist(),
+                    (np.linalg.inv(homo[axes_origin_ID]) @ homo[goal_ID])[:2, 3].tolist(),
+                    obs, args=True)
 
     # Apply CL plan tracking:
     executed_path = []

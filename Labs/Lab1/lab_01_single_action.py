@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 
 import sys, os
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../common/robot"))
 from robot_actions import *
 
@@ -26,7 +27,7 @@ if __name__ == "__main__":
             base_cyclic = BaseCyclicClient(router)
 
             input("Remove any objects near the arm and press Enter")
-            # Example core
+
             success = True
             flag = True
             display = True
@@ -36,9 +37,9 @@ if __name__ == "__main__":
                 if display:
                     print('\n-----------------------------------------------')
                     key = input("Press H to move the arm  to home position\n"
-                          "Press C to move the arm to desired cartesian action\n"
-                          "Press A to move the arm to desired angular action\n"
-                          "To Quit press Q\n")
+                                "Press C to move the arm to desired cartesian action\n"
+                                "Press A to move the arm to desired angular action\n"
+                                "To Quit press Q\n")
                     display = False
 
                 if str(key) == 'h' or str(key) == 'H':
@@ -64,6 +65,7 @@ if __name__ == "__main__":
                         display = True
                     else:
                         print('Huston, we have a problem, please call the instructor')
+
                 if str(key) == 'q' or str(key) == 'Q':
                     break
 
@@ -72,4 +74,3 @@ if __name__ == "__main__":
 
     except KeyboardInterrupt:
         pass
-

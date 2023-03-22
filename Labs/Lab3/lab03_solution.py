@@ -8,6 +8,7 @@ d1, d2, d3, d4, d5, d6 = symbols('d1:7')
 q1, q2, q3, q4, q5, q6 = symbols('q1:7')
 q = (q1, q2, q3, q4, q5, q6)
 
+
 def TF_matrix(alpha, a, d, q):
     TF = Matrix([[cos(q), -cos(alpha) * sin(q), sin(q) * sin(alpha), a * cos(q)],
                  [sin(q), cos(alpha) * cos(q), -sin(alpha) * cos(q), a * sin(q)],
@@ -15,8 +16,8 @@ def TF_matrix(alpha, a, d, q):
                  [0, 0, 0, 1]])
     return TF
 
-def set_dh_table():
 
+def set_dh_table():
     dh_subs_dict = {alpha1: pi / 2, a1: 0, d1: 0.1283 + 0.1150, q1: q1,
                     alpha2: pi, a2: 0.280, d2: 0.030, q2: q2 + pi / 2,
                     alpha3: pi / 2, a3: 0, d3: 0.020, q3: q3 + pi / 2,
@@ -24,6 +25,7 @@ def set_dh_table():
                     alpha5: pi / 2, a5: 0, d5: 0.0285 + 0.0285, q5: q5 + pi,
                     alpha6: 0, a6: 0, d6: 0.1050 + 0.130, q6: q6 + pi / 2}
     return dh_subs_dict
+
 
 def set_tranform_matrices():
     tf_matrices_list = []
@@ -45,8 +47,8 @@ def set_tranform_matrices():
     tf_matrices_list.append(T)
     return tf_matrices_list
 
-def forward_hom_mat(theta_list):
 
+def forward_hom_mat(theta_list):
     theta_dict = {}
     tf_matrices_list = set_tranform_matrices()
     T_0G = tf_matrices_list[-1]
@@ -56,8 +58,8 @@ def forward_hom_mat(theta_list):
 
     return T_0G.evalf(subs=theta_dict, chop=True, maxn=4)
 
-def create_jacobian_syms():
 
+def create_jacobian_syms():
     tf_matrices_list = set_tranform_matrices()
 
     T_0G = tf_matrices_list[-1]  # Get homogeneous transformation between base to TCP
@@ -69,19 +71,20 @@ def create_jacobian_syms():
 
     return Matrix(BlockMatrix([[jacobian_mat], [temp]]))
 
-def LinearJacobian(Q):
 
+def LinearJacobian(Q):
     jacobian_mat_syms = create_jacobian_syms()
-    return np.matrix(jacobian_mat_syms.evalf(subs=Q,                   # Get only the linear Jacobian
+    return np.matrix(jacobian_mat_syms.evalf(subs=Q,  # Get only the linear Jacobian
                                              chop=True,
                                              maxn=4)).astype(np.float64)[:3, :]
 
-def Jacobian(Q):
 
+def Jacobian(Q):
     jacobian_mat_syms = create_jacobian_syms()
     return np.matrix(jacobian_mat_syms.evalf(subs=Q,
                                              chop=True,
                                              maxn=4)).astype(np.float64)
+
 
 def IK_NR_position(guess, target):
     lr = 0.05
@@ -89,7 +92,7 @@ def IK_NR_position(guess, target):
     theta_dict = {}
     Q = guess  # Initial Guess - Joint Angles
     p_d = target
-    error= 100
+    error = 100
 
     while error > 1e-2:
 

@@ -6,6 +6,10 @@ from kortex_api.autogen.client_stubs.BaseClientRpc import BaseClient
 from kortex_api.autogen.client_stubs.BaseCyclicClientRpc import BaseCyclicClient
 import sys
 
+'''
+This code checks the connection between a computer and a robot to ensure that they can communicate with each other.
+If you experiencing any problem, please call the instructor.
+'''
 
 def main():
     # Import the utilities helper module

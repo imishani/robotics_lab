@@ -1,10 +1,11 @@
 import os
+import sys
+
 if os.name == 'nt':
     import msvcrt
 else:
     import tty, termios
 
-import sys
 # from lab02_student import *
 from lab02_solution import *
 
@@ -13,9 +14,11 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../Lab1/"))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../common/robot"))
 from robot_actions import *
 import utilities
+
 np.set_printoptions(precision=2, suppress=True, threshold=5)
 
-class robotic_arm_lab2():
+
+class RoboticArmLab02:
 
     def __init__(self):
         self.joints = 0
@@ -75,7 +78,6 @@ class robotic_arm_lab2():
 
         return self.current_pos
 
-
     def forward_kinematics(self, theta_list):
         """
         calculate forward kinematic for a desired theta_list
@@ -92,7 +94,6 @@ class robotic_arm_lab2():
         '''calculate [x,y,z,roll,pitch,yaw] '''
 
         self.current_pos = xyz_euler(T_0G_eval)
-
 
         return self.current_pos
 
@@ -112,7 +113,7 @@ def move_to_angle_conf(angle_conf_eval):
         quit_flag = False
         for i in range(len(angle_conf_eval)):
 
-            C = angle_conf_eval['t'+ str(i + 1)]
+            C = angle_conf_eval['t' + str(i + 1)]
 
             success = True
             flag = True
@@ -123,7 +124,7 @@ def move_to_angle_conf(angle_conf_eval):
                 if display:
                     key = input("Press H to move the arm  to home position\n"
                                 "Press A to move the arm to desired cartesian position: \n"
-                                + str(np.round(C.squeeze(), 3))+ '\n'
+                                + str(np.round(C.squeeze(), 3)) + '\n'
                                 + "To Quit press Q\n")
                     display = False
 
@@ -148,11 +149,14 @@ def move_to_angle_conf(angle_conf_eval):
 
 
 if __name__ == '__main__':
-    # For simplicity, we used symbolic function for differentiation
-    # A tutorial can be found here: https://docs.sympy.org/latest/tutorial/index.html
 
-    arm = robotic_arm_lab2()     # Initialize a generic robotic arm
-    arm.set_joints(6)       # Define the amount of joints
+    '''
+    For simplicity, we used symbolic function for differentiation
+    A tutorial can be found here: https://docs.sympy.org/latest/tutorial/index.html
+    '''
+
+    arm = RoboticArmLab02()  # Initialize a generic robotic arm
+    arm.set_joints(6)  # Define the amount of joints
 
     # TODO: fill the following dict as described in the lab notes
 
@@ -174,4 +178,3 @@ if __name__ == '__main__':
     print()
 
     move_to_angle_conf(angle_conf_eval)
-

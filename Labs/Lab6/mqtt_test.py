@@ -13,7 +13,6 @@ to activate keyboard master with proper permision:
     to run the file: python main.py
 '''
 import time
-# -- for processor functions:
 import paho.mqtt.client as mqttClient
 import json
 import os

@@ -12,12 +12,9 @@ if os.name == 'nt':
 else:
   import tty, termios
 
-from kortex_api.autogen.client_stubs.BaseClientRpc import BaseClient
-from kortex_api.autogen.client_stubs.BaseCyclicClientRpc import BaseCyclicClient
-from kortex_api.autogen.messages import Base_pb2, BaseCyclic_pb2, Common_pb2
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../common/robot"))
 from robot_actions import *
-from lab04_sol import *
+from lab04_solution import *
 
 
 def trajectory_task(base, goals, Tf=3., N=5):
@@ -211,6 +208,7 @@ if __name__ == "__main__":
                         display = True
                     else:
                         print('Huston, we have a problem, please call the instructor')
+
                 # Close gripper
                 if str(key) == 'g' or str(key) == 'G':
                     value = input("Enter the amount to close (1 is maximum 0 is minimum): ")
@@ -220,6 +218,7 @@ if __name__ == "__main__":
                         display = True
                     else:
                         print('Huston, we have a problem, please call the instructor')
+
                 # Open gripper
                 if str(key) == 'o' or str(key) == 'O':
                     success &= OpeningGripperCommands(base)
@@ -228,6 +227,7 @@ if __name__ == "__main__":
                         display = True
                     else:
                         print('Huston, we have a problem, please call the instructor')
+
                 # Trajectory task-space
                 if str(key) == 'c' or str(key) == 'C':
                     waypoints = generate_x_goals_list()
@@ -241,6 +241,7 @@ if __name__ == "__main__":
                         display = True
                     else:
                         print('Huston, we have a problem, please call the instructor')
+
                 # Trajectory conf-space
                 if str(key) == 'a' or str(key) == 'A':
                     waypoints = generate_q_goals_list()
@@ -254,10 +255,9 @@ if __name__ == "__main__":
                         display = True
                     else:
                         print('Huston, we have a problem, please call the instructor')
+
                 if str(key) == 'q' or str(key) == 'Q':
                     break
-
-
 
         if os.name != 'nt':
             termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)

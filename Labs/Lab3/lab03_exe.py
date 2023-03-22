@@ -11,15 +11,18 @@ else:
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../common/robot"))
 from robot_actions import *
 from lab03_solution import *
+
 np.set_printoptions(precision=2, suppress=True, threshold=5)
 init_printing()
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 import utilities
 
-def round_expr(expr, num_digits):
-    return expr.xreplace({n : round(n, num_digits) for n in expr.atoms(Number)})
 
-class robotic_arm_lab3():
+def round_expr(expr, num_digits):
+    return expr.xreplace({n: round(n, num_digits) for n in expr.atoms(Number)})
+
+
+class RoboticArmLab03:
 
     def __init__(self, simplified=False):
         self.joints = 0
@@ -157,7 +160,7 @@ class robotic_arm_lab3():
 
         Ja.append(np.array([0, 0, 1]))
         Pee = np.array(self.tf_matrices_list[-1][:3, 3].evalf(
-                                                    subs=theta_dict, chop=True, maxn=4)).astype(np.float64).squeeze()
+            subs=theta_dict, chop=True, maxn=4)).astype(np.float64).squeeze()
 
         Jl.append(np.cross(Pee, np.array([0, 0, 1])))
         for i, T in enumerate(self.tf_matrices_list[:-2]):
@@ -201,7 +204,7 @@ class robotic_arm_lab3():
             theta_dict[self.q[i]] = theta_list[i]
 
         return T_0G.evalf(subs=theta_dict, chop=True, maxn=4)
-    
+
     def inverse_kinematics_simplified(self, target, sol_num):
 
         # Position
@@ -315,8 +318,7 @@ class robotic_arm_lab3():
 
     def inverse_kinematics_iterative_position_old(self, guess, p_d):
 
-
-        Q = guess # Initial Guess - Joint Angles
+        Q = guess  # Initial Guess - Joint Angles
         self.jacobian_func()  # Init Jacobian
         theta_dict = {}
         error = 100
@@ -331,14 +333,14 @@ class robotic_arm_lab3():
             print(counter, np.rad2deg(Q))
 
             T = np.array(self.forward_hom_mat(Q)).astype(np.float64)  # Get transformation between base to EE
-            p = T[:3, 3].reshape((3,))                                # Extract Rotation matrix
+            p = T[:3, 3].reshape((3,))  # Extract Rotation matrix
 
             # J = np.matrix(self.jacobian_mat.evalf(subs=theta_dict,  # Get only the linear Jacobian
             #                                       chop=True,
             #                                       maxn=4)).astype(np.float64)[:3, :]
 
             J = Jacobian(theta_dict)
-            Q = Q + lr * np.linalg.pinv(J).dot(p_d - p)               # Update Q
+            Q = Q + lr * np.linalg.pinv(J).dot(p_d - p)  # Update Q
             Q = np.array(Q).astype(np.float64)
             Q = Q[0]
 
@@ -360,8 +362,8 @@ class robotic_arm_lab3():
 
         return Q
 
-def move_to_angle_conf(angle_conf_eval):
 
+def move_to_angle_conf(angle_conf_eval):
     args = utilities.parseConnectionArguments()
     with utilities.DeviceConnection.createTcpConnection(args) as router:
         # Create required services
@@ -382,7 +384,7 @@ def move_to_angle_conf(angle_conf_eval):
                 if display:
                     key = input("Press H to move the arm  to home position\n"
                                 "Press A to move the arm to desired angular position: \n"
-                                + str(np.round(Q.squeeze(), 3))+ '\n'
+                                + str(np.round(Q.squeeze(), 3)) + '\n'
                                 + "To Quit press Q\n")
                     display = False
 
@@ -404,9 +406,9 @@ def move_to_angle_conf(angle_conf_eval):
                 if str(key) == 'q' or str(key) == 'Q':
                     break
 
-if __name__ == '__main__':
 
-    arm = robotic_arm_lab3()
+if __name__ == '__main__':
+    arm = RoboticArmLab03()
     arm.set_joints(6)
 
     # Create desired TCP position
@@ -430,7 +432,7 @@ if __name__ == '__main__':
     ###### Newton simplified solution #########
     ###########################################
 
-    q0 = np.deg2rad(np.array([0, -10, 50, 20, 10, 5])) # arm.gen_angles()
+    q0 = np.deg2rad(np.array([0, -10, 50, 20, 10, 5]))  # arm.gen_angles()
     Tsd = np.array(Tsd).astype(np.float64)
     qn = arm.inverse_kinematics_iterative_position(guess=q0, p_d=Tsd[:3, 3])
 
@@ -444,25 +446,6 @@ if __name__ == '__main__':
     plt.show()
 
     move_to_angle_conf({'target': np.rad2deg(qn)})
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ####################################
 ###### Analytical solution #########
