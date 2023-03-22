@@ -16,10 +16,12 @@ import glob
 from scipy.spatial.transform import Rotation
 
 # PATH = 'calib_images/tests/*.jpg'
-# PATH  = r'C:\Users\admin\Documents\robotics_lab\Labs\common\Aruco_Tracker-master\calib_images/tests/*.jpg'
-PATH = r'C:\Users\USER\Desktop\robotics_lab\Labs\common\Aruco_Tracker-master\calib_images/tests/*.jpg'
-# PATH = r'C:\Users\USER\Desktop\dev\robotics_lab\Labs\common\Aruco_Tracker-master\calib_images/tests/*.jpg'
-# PATH = r'C:\Users\USER\Desktop\dev\robotics_lab\Labs\common\Aruco_Tracker-master\test_osher/*.jpg'
+PATH  = r'C:\Users\admin\Documents\robotics_lab\Labs\common\Aruco_Tracker\calib_images/tests/*.jpg'
+# PATH = r'C:\Users\\Desktop\robotics_lab\Labs\common\Aruco_Tracker-master\calib_images/tests/*.jpg'
+
+
+# PATH = r'C:\Users\USER\Desktop\dev\robotics_lab\Labs\common\Aruco_Tracker\calib_images/tests/*.jpg'
+# PATH = r'C:\Users\USER\Desktop\dev\robotics_lab\Labs\common\Aruco_Tracker\test_osher/*.jpg'
 
 class aruco_track():
 
@@ -33,17 +35,19 @@ class aruco_track():
         if not self.cap.isOpened():
             raise IOError("Cannot open webcam")
         self.calibrate()
+
     ####---------------------- CALIBRATION ---------------------------
     # termination criteria for the iterative algorithm
+
     def calibrate(self):
         criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
         objp = np.zeros((self.cbrow * self.cbcol, 3), np.float32)
-        objp[:,:2] = np.mgrid[0:self.cbcol, 0:self.cbrow].T.reshape(-1,2)
+        objp[:, :2] = np.mgrid[0:self.cbcol, 0:self.cbrow].T.reshape(-1, 2)
 
-        objp = objp #* 0.024
+        objp = objp  # * 0.024
         # arrays to store object points and image points from all the images.
-        objpoints = [] # 3d point in real world space
-        imgpoints = [] # 2d points in image plane.
+        objpoints = []  # 3d point in real world space
+        imgpoints = []  # 2d points in image plane.
 
         # iterating through all calibration images
         # in the folder
@@ -54,7 +58,7 @@ class aruco_track():
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
             # find the chess board (calibration pattern) corners
-            ret, corners = cv2.findChessboardCorners(gray, (self.cbcol,self.cbrow),None)
+            ret, corners = cv2.findChessboardCorners(gray, (self.cbcol, self.cbrow), None)
 
             # if calibration pattern is found, add object points,
             # image points (after refining them)
@@ -62,18 +66,19 @@ class aruco_track():
                 objpoints.append(objp)
 
                 # Refine the corners of the detected corners
-                corners2 = cv2.cornerSubPix(gray,corners,(11,11),(-1,-1),criteria)
+                corners2 = cv2.cornerSubPix(gray, corners, (11, 11), (-1, -1), criteria)
                 imgpoints.append(corners2)
 
                 # Draw and display the corners
-                img = cv2.drawChessboardCorners(img, (self.cbcol, self.cbrow), corners2,ret)
+                img = cv2.drawChessboardCorners(img, (self.cbcol, self.cbrow), corners2, ret)
             #     cv2.imshow('frame', img)
             #     cv2.waitKey(250)
             # else:
             #     cv2.imshow('frame',  cv2.imread(fname))
             #     cv2.waitKey(250)
 
-        self.ret, self.mtx, self.dist, self.rvecs, self.tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1],None,None)
+        self.ret, self.mtx, self.dist, self.rvecs, self.tvecs = cv2.calibrateCamera(objpoints, imgpoints,
+                                                                                    gray.shape[::-1], None, None)
 
     ###------------------ ARUCO TRACKER ---------------------------
 
@@ -116,29 +121,28 @@ class aruco_track():
             # code to show ids of the marker found
             strg = ''
             for i in range(0, ids.size):
-                strg += str(ids[i][0])+', '
+                strg += str(ids[i][0]) + ', '
 
-            cv2.putText(frame, "Id: " + strg, (0,64), font, 1, (0,255,0),2,cv2.LINE_AA)
+            cv2.putText(frame, "Id: " + strg, (0, 64), font, 1, (0, 255, 0), 2, cv2.LINE_AA)
         else:
             # code to show 'No Ids' when no markers are found
-            cv2.putText(frame, "No Ids", (0,64), font, 1, (0,255,0),2,cv2.LINE_AA)
+            cv2.putText(frame, "No Ids", (0, 64), font, 1, (0, 255, 0), 2, cv2.LINE_AA)
             rvec = tvec = None
 
         # display the resulting frame
-        cv2.imshow('frame',frame)
+        cv2.imshow('frame', frame)
 
         return tvec, rvec, ids
 
 
-
-if __name__ =='__main__':
+if __name__ == '__main__':
     aru = aruco_track()
     counter = 0
 
-    while (True):
+    while True:
         tvec, rvec, _ = aru.track()
         # time.sleep(1)
-        if counter%50 and tvec is not None:
+        if counter % 50 and tvec is not None:
             # print('rvec: {}, tvec: {}'.format(rvec, tvec))
             t_curr, R_curr = tvec.squeeze(), rvec.squeeze()
             R_curr = Rotation.from_rotvec(R_curr).as_euler('xyz')
@@ -152,5 +156,3 @@ if __name__ =='__main__':
 
     aru.cap.release()
     cv2.destroyAllWindows()
-
-

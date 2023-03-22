@@ -10,11 +10,11 @@ import math
 from scipy.spatial.transform import Rotation as R
 import sys, os
 
-sys.path.insert(0, r'../common/Aruco_Tracker-master')
-sys.path.insert(0, r'../Lab5')
+sys.path.insert(0, r'../common/Aruco_Tracker')
+sys.path.insert(0, r'../Lab6')
 
 from aruco_module import aruco_track
-from Lab5_car import planner
+from Lab6_car import planner
 from car_control import Controller
 import cv2
 

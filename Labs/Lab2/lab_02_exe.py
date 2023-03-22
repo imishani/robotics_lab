@@ -1,19 +1,11 @@
 import os
 import sys
 
-if os.name == 'nt':
-    import msvcrt
-else:
-    import tty, termios
-
 # from lab02_student import *
 from lab02_solution import *
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../Lab1/"))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../common/robot"))
 from robot_actions import *
-import utilities
 
 np.set_printoptions(precision=2, suppress=True, threshold=5)
 
@@ -98,56 +90,6 @@ class RoboticArmLab02:
         return self.current_pos
 
 
-def move_to_angle_conf(angle_conf_eval):
-
-    args = utilities.parseConnectionArguments()
-    with utilities.DeviceConnection.createTcpConnection(args) as router:
-        # Create required services
-        base = BaseClient(router)
-        base_cyclic = BaseCyclicClient(router)
-        input("Remove any objects near the arm and press Enter")
-        input("Moving the robot to home position")
-        example_move_to_home_position(base)
-        print()
-
-        quit_flag = False
-        for i in range(len(angle_conf_eval)):
-
-            C = angle_conf_eval['t' + str(i + 1)]
-
-            success = True
-            flag = True
-            display = True
-
-            while flag and success and not quit_flag:
-
-                if display:
-                    key = input("Press H to move the arm  to home position\n"
-                                "Press A to move the arm to desired cartesian position: \n"
-                                + str(np.round(C.squeeze(), 3)) + '\n'
-                                + "To Quit press Q\n")
-                    display = False
-
-                if str(key) == 'h' or str(key) == 'H':
-                    success &= example_move_to_home_position(base)
-                    if success:
-                        print('Successfully moved to home position')
-                        display = True
-                    else:
-                        print('Huston, we have a problem, please call the instructor')
-
-                if str(key) == 'A' or str(key) == 'a':
-                    success &= example_cartesian_action_movement(base, base_cyclic, C=C)
-                    if success:
-                        print('Successfully moved to arm to desired cartesian action\n\n')
-                        flag = False
-                    else:
-                        print('Huston, we have a problem, please call the instructor')
-                if str(key) == 'q' or str(key) == 'Q':
-                    quit_flag = True
-                    break
-
-
 if __name__ == '__main__':
 
     '''
@@ -177,4 +119,4 @@ if __name__ == '__main__':
         print(str(target) + '    ' + str(angle_conf_eval[target].reshape(-1)))
     print()
 
-    move_to_angle_conf(angle_conf_eval)
+    move_to_multiple_angle_conf(angle_conf_eval)

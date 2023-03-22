@@ -53,7 +53,7 @@ if __name__ == "__main__":
     if os.name != 'nt':
         settings = termios.tcgetattr(sys.stdin)
     try:
-        sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
         import utilities
 
         # Parse arguments

@@ -14,8 +14,6 @@ Communications Failed
 if __name__ == "__main__":
 
     try:
-        sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-        import utilities
 
         # Parse arguments
         args = utilities.parseConnectionArguments()

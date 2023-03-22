@@ -1,10 +1,12 @@
 #! /usr/bin/env python3
 
-
 import os
-from kortex_api.autogen.client_stubs.BaseClientRpc import BaseClient
-from kortex_api.autogen.client_stubs.BaseCyclicClientRpc import BaseCyclicClient
 import sys
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../Lab1/"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../common/robot"))
+from robot_actions import *
+import utilities
 
 '''
 This code checks the connection between a computer and a robot to ensure that they can communicate with each other.
@@ -13,10 +15,7 @@ If you experiencing any problem, please call the instructor.
 
 def main():
     # Import the utilities helper module
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
     try:
-        import utilities
-
         # Parse arguments
         args = utilities.parseConnectionArguments()
 

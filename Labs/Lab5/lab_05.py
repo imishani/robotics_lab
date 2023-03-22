@@ -1,26 +1,20 @@
 #!/usr/bin/env python
 import sys
 import os
-sys.path.insert(0, r'../common/Aruco_Tracker-master')
+
+sys.path.insert(0, r'../common/Aruco_Tracker')
 from aruco_module import aruco_track
 from kinova import KinovaVS
 from visual_servoing import PBVS
 import cv2
-if os.name == 'nt':
-  import msvcrt
-else:
-  import tty, termios
 
-from kortex_api.autogen.client_stubs.BaseClientRpc import BaseClient
-from kortex_api.autogen.client_stubs.BaseCyclicClientRpc import BaseCyclicClient
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../common/robot"))
+from robot_actions import *
+from recorder import save
 from scipy.spatial.transform import Rotation as R
-import subprocess
-import sys, select, os
-import time
-from recorder import *
+
 
 if __name__ == '__main__':
-
 
     try:
 
@@ -29,9 +23,6 @@ if __name__ == '__main__':
         # setup connection with the kinova
         if os.name != 'nt':
             settings = termios.tcgetattr(sys.stdin)
-
-        sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-        import utilities
 
         # Parse arguments
         args = utilities.parseConnectionArguments()
@@ -62,7 +53,6 @@ if __name__ == '__main__':
 
             controller.set_target_feature(t_target, R_target)
 
-
             while True:
                 # get pose estimation from tracker node
                 try:
@@ -81,15 +71,17 @@ if __name__ == '__main__':
                     print('Error! Cannot find [tag] to [camera_frame] transform')
                     vel_body = vel_cam = vel_ee = [0, 0, 0, 0, 0, 0]
 
-
                 kinova_vs.set_joint_vel(vel_ee, base, base_cyclic)
-                print("TCP Vel Command: {:3.3f}, {:3.3f}, {:3.3f}, {:3.3f}, {:3.3f}, {:3.3f}\n".format(vel_ee[0], vel_ee[1],
-                                                                                             vel_ee[2], vel_ee[3],
-                                                                                             vel_ee[4], vel_ee[5]))
+                print("TCP Vel Command: {:3.3f}, {:3.3f}, {:3.3f}, {:3.3f}, {:3.3f}, {:3.3f}\n".format(vel_ee[0],
+                                                                                                       vel_ee[1],
+                                                                                                       vel_ee[2],
+                                                                                                       vel_ee[3],
+                                                                                                       vel_ee[4],
+                                                                                                       vel_ee[5]))
                 vel_list.append(vel_ee)
                 error_list.append(error)
                 T_bh_list.append(T_bh)
 
     except KeyboardInterrupt:
-        save_data((vel_list, error_list, T_bh_list))
+        save((vel_list, error_list, T_bh_list), prefix='5')
         pass

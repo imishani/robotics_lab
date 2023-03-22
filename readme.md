@@ -9,7 +9,7 @@ In each lab there is an instructions file. Be sure to follow it.
 * **[Lab 5](/Labs/Lab5)**: Visual Servoing Control
 * **[Lab 6](/Labs/Lab6)**: Motion Planning for a mobile robot
 
-* **[Final Project](/Labs/final_proj)**
+* **[Final Project](/Labs/final_project)**
 
 <a id="markdown-setup-example-python-environment" name="setup-example-python-environment"></a>
 ## Installation

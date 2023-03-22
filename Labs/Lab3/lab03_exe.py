@@ -3,19 +3,13 @@ import matplotlib.pyplot as plt
 import matplotlib
 import sys, os
 
-if os.name == 'nt':
-    import msvcrt
-else:
-    import tty, termios
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../common/robot"))
+
 from robot_actions import *
 from lab03_solution import *
 
 np.set_printoptions(precision=2, suppress=True, threshold=5)
 init_printing()
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-import utilities
 
 
 def round_expr(expr, num_digits):
@@ -363,50 +357,6 @@ class RoboticArmLab03:
         return Q
 
 
-def move_to_angle_conf(angle_conf_eval):
-    args = utilities.parseConnectionArguments()
-    with utilities.DeviceConnection.createTcpConnection(args) as router:
-        # Create required services
-        base = BaseClient(router)
-        base_cyclic = BaseCyclicClient(router)
-        input("Remove any objects near the arm and press Enter")
-        for i in range(len(angle_conf_eval)):
-
-            Q = angle_conf_eval['target']
-            # Create connection to the device and get the router
-            # Example core
-            success = True
-            flag = True
-            display = True
-
-            while flag and success:
-
-                if display:
-                    key = input("Press H to move the arm  to home position\n"
-                                "Press A to move the arm to desired angular position: \n"
-                                + str(np.round(Q.squeeze(), 3)) + '\n'
-                                + "To Quit press Q\n")
-                    display = False
-
-                if str(key) == 'h' or str(key) == 'H':
-                    success &= example_move_to_home_position(base)
-                    if success:
-                        print('Successfully moved to home position')
-                        display = True
-                    else:
-                        print('Huston, we have a problem, please call the instructor')
-
-                if str(key) == 'A' or str(key) == 'a':
-                    success &= example_angular_action_movement(base, base_cyclic, Q=Q)
-                    if success:
-                        print('Successfully moved to arm to desired angular action')
-                        flag = False
-                    else:
-                        print('Huston, we have a problem, please call the instructor')
-                if str(key) == 'q' or str(key) == 'Q':
-                    break
-
-
 if __name__ == '__main__':
     arm = RoboticArmLab03()
     arm.set_joints(6)
@@ -447,46 +397,46 @@ if __name__ == '__main__':
 
     move_to_angle_conf({'target': np.rad2deg(qn)})
 
-####################################
-###### Analytical solution #########
-####################################
+    ####################################
+    ###### Analytical solution #########
+    ####################################
 
-# Qik = []
-# d = 1000.
-# im = 0
-# for i in range(8):
-#     qik = arm.inverse_kinematics_simplified(Tsd, i)
-#     print('Analytical IK solution #%d:'%i, np.rad2deg(qik))
-#     Qik.append(np.copy(qik))
-#     if np.linalg.norm(qik-q) < d:
-#         im = i
-#         d = np.linalg.norm(qik-q)
-# qik = Qik[im]
-# arm.plot_arm(ax, qik, 'red')
+    # Qik = []
+    # d = 1000.
+    # im = 0
+    # for i in range(8):
+    #     qik = arm.inverse_kinematics_simplified(Tsd, i)
+    #     print('Analytical IK solution #%d:'%i, np.rad2deg(qik))
+    #     Qik.append(np.copy(qik))
+    #     if np.linalg.norm(qik-q) < d:
+    #         im = i
+    #         d = np.linalg.norm(qik-q)
+    # qik = Qik[im]
+    # arm.plot_arm(ax, qik, 'red')
 
-####################################
-###### Newton solution #############
-####################################
+    ####################################
+    ###### Newton solution #############
+    ####################################
 
-# q0 = q + np.deg2rad(np.random.random((1,6)) * 3. - 1.5)[0]
-# qn = arm.inverse_kinematics_iterative(q0, Tsd)
-# arm.plot_arm(ax, qn, 'blue')
-# print('Original q:', np.rad2deg(q))
-# print('Iterative IK solution:', np.rad2deg(qn))
-# print('IK q:', np.rad2deg(qik))
-# Q = []
-# while len(Q) < 8:
-#     q0 = arm.gen_angles()
-#     qn = arm.inverse_kinematics_iterative(q0, Tsd)
-#     D = [np.linalg.norm(qn-qp) for qp in Q]
-#     if len(D) == 0 or np.all(np.array(D)>1e-2):
-#         Q.append(qn)
-#         arm.plot_arm(ax, qn, 'blue')
-# print()
-# for qn in Q:
-#     print(np.rad2deg(qn))
-#     print(arm.forward_hom_mat(qn))
-# print('---')
-# print('Original q:', np.rad2deg(q))
-# Tsd = np.array(Tsd).astype(np.float64)
-# print(Tsd)
+    # q0 = q + np.deg2rad(np.random.random((1,6)) * 3. - 1.5)[0]
+    # qn = arm.inverse_kinematics_iterative(q0, Tsd)
+    # arm.plot_arm(ax, qn, 'blue')
+    # print('Original q:', np.rad2deg(q))
+    # print('Iterative IK solution:', np.rad2deg(qn))
+    # print('IK q:', np.rad2deg(qik))
+    # Q = []
+    # while len(Q) < 8:
+    #     q0 = arm.gen_angles()
+    #     qn = arm.inverse_kinematics_iterative(q0, Tsd)
+    #     D = [np.linalg.norm(qn-qp) for qp in Q]
+    #     if len(D) == 0 or np.all(np.array(D)>1e-2):
+    #         Q.append(qn)
+    #         arm.plot_arm(ax, qn, 'blue')
+    # print()
+    # for qn in Q:
+    #     print(np.rad2deg(qn))
+    #     print(arm.forward_hom_mat(qn))
+    # print('---')
+    # print('Original q:', np.rad2deg(q))
+    # Tsd = np.array(Tsd).astype(np.float64)
+    # print(Tsd)

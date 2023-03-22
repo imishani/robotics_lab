@@ -5,7 +5,7 @@ import transformations
 from scipy.spatial.transform import Rotation as R
 import modern_robotics
 
-from lab07_sol import *
+from lab05_solution import *
 
 class VisualServoing(object):
     def __init__(self):

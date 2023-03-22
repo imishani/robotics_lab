@@ -11,7 +11,7 @@ from kortex_api.autogen.client_stubs.BaseClientRpc import BaseClient
 from kortex_api.autogen.client_stubs.BaseCyclicClientRpc import BaseCyclicClient
 from kortex_api.autogen.messages import Base_pb2, BaseCyclic_pb2, Common_pb2
 
-
+import utilities
 # Maximum allowed waiting time during actions (in seconds)
 TIMEOUT_DURATION = 1000
 e = """
@@ -406,3 +406,231 @@ def OpeningGripperCommands(base):
             break
     return True
 
+def move_to_angle_conf(angle_conf_eval):
+    args = utilities.parseConnectionArguments()
+    with utilities.DeviceConnection.createTcpConnection(args) as router:
+        # Create required services
+        base = BaseClient(router)
+        base_cyclic = BaseCyclicClient(router)
+        input("Remove any objects near the arm and press Enter")
+        for i in range(len(angle_conf_eval)):
+
+            Q = angle_conf_eval['target']
+            # Create connection to the device and get the router
+            # Example core
+            success = True
+            flag = True
+            display = True
+
+            while flag and success:
+
+                if display:
+                    key = input("Press H to move the arm  to home position\n"
+                                "Press A to move the arm to desired angular position: \n"
+                                + str(np.round(Q.squeeze(), 3)) + '\n'
+                                + "To Quit press Q\n")
+                    display = False
+
+                if str(key) == 'h' or str(key) == 'H':
+                    success &= example_move_to_home_position(base)
+                    if success:
+                        print('Successfully moved to home position')
+                        display = True
+                    else:
+                        print('Huston, we have a problem, please call the instructor')
+
+                if str(key) == 'A' or str(key) == 'a':
+                    success &= example_angular_action_movement(base, base_cyclic, Q=Q)
+                    if success:
+                        print('Successfully moved to arm to desired angular action')
+                        flag = False
+                    else:
+                        print('Huston, we have a problem, please call the instructor')
+                if str(key) == 'q' or str(key) == 'Q':
+                    break
+
+
+def move_to_multiple_angle_conf(angle_conf_eval):
+
+    args = utilities.parseConnectionArguments()
+    with utilities.DeviceConnection.createTcpConnection(args) as router:
+        # Create required services
+        base = BaseClient(router)
+        base_cyclic = BaseCyclicClient(router)
+        input("Remove any objects near the arm and press Enter")
+        input("Moving the robot to home position")
+        example_move_to_home_position(base)
+        print()
+
+        quit_flag = False
+        for i in range(len(angle_conf_eval)):
+
+            C = angle_conf_eval['t' + str(i + 1)]
+
+            success = True
+            flag = True
+            display = True
+
+            while flag and success and not quit_flag:
+
+                if display:
+                    key = input("Press H to move the arm  to home position\n"
+                                "Press A to move the arm to desired cartesian position: \n"
+                                + str(np.round(C.squeeze(), 3)) + '\n'
+                                + "To Quit press Q\n")
+                    display = False
+
+                if str(key) == 'h' or str(key) == 'H':
+                    success &= example_move_to_home_position(base)
+                    if success:
+                        print('Successfully moved to home position')
+                        display = True
+                    else:
+                        print('Huston, we have a problem, please call the instructor')
+
+                if str(key) == 'A' or str(key) == 'a':
+                    success &= example_cartesian_action_movement(base, base_cyclic, C=C)
+                    if success:
+                        print('Successfully moved to arm to desired cartesian action\n\n')
+                        flag = False
+                    else:
+                        print('Huston, we have a problem, please call the instructor')
+                if str(key) == 'q' or str(key) == 'Q':
+                    quit_flag = True
+                    break
+
+
+def trajectory_task(base, base_cyclic, traj_gen_task, goals, Tf=3., N=5):
+    base_servo_mode = Base_pb2.ServoingModeInformation()
+    base_servo_mode.servoing_mode = Base_pb2.SINGLE_LEVEL_SERVOING
+    base.SetServoingMode(base_servo_mode)
+    product = base.GetProductConfiguration()
+    waypointsDefinition = goals  # tuple(tuple())
+
+
+    point_num = 1
+    for x_g in waypointsDefinition:  # waypointsDefinition
+        x_s = np.array([base_cyclic.RefreshFeedback().base.tool_pose_x,
+                        base_cyclic.RefreshFeedback().base.tool_pose_y,
+                        base_cyclic.RefreshFeedback().base.tool_pose_z,
+                        0.,
+                        base_cyclic.RefreshFeedback().base.tool_pose_theta_x,
+                        base_cyclic.RefreshFeedback().base.tool_pose_theta_y,
+                        base_cyclic.RefreshFeedback().base.tool_pose_theta_z])
+
+        t = np.linspace(0, Tf, N)
+        waypointsDef = [tuple(traj_gen_task(x_s, np.array(list(x_g)), ti, Tf)[0]) for ti in t]
+        waypoints = Base_pb2.WaypointList()
+        waypoints.duration = 0.0
+        waypoints.use_optimal_blending = True
+
+        from tqdm.auto import tqdm
+        prog_bar = tqdm(waypointsDef)
+        index = 0
+        for waypointDef in prog_bar:
+            waypoint = waypoints.waypoints.add()
+            waypoint.name = "waypoint_" + str(index)
+            waypoint.cartesian_waypoint.CopyFrom(populateCartesianCoordinate(waypointDef))
+            index = index + 1
+            prog_bar.set_description(f'Added point {index} to trajectory of x goal {x_g}')
+            prog_bar.refresh()
+
+            # Verify validity of waypoints
+        result = base.ValidateWaypointList(waypoints);
+        if (len(result.trajectory_error_report.trajectory_error_elements) == 0):
+            e = threading.Event()
+            notification_handle = base.OnNotificationActionTopic(check_for_end_or_abort(e),
+                                                                 Base_pb2.NotificationOptions())
+
+            print("Moving cartesian trajectory...")
+            base.ExecuteWaypointTrajectory(waypoints)
+            print("Waiting for trajectory to finish ...")
+            finished = e.wait(TIMEOUT_DURATION)
+            base.Unsubscribe(notification_handle)
+
+            if finished:
+
+                print("Cartesian trajectory with optimization completed, Path num: " + str(point_num))
+                point_num += 1
+                if point_num == 4:
+                    ClosingGripperCommands(base, 0.7)
+
+                else:
+                    print("Timeout on action notification wait for optimized trajectory")
+                # finished_ = finished_opt
+
+            else:
+                print("Timeout on action notification wait for non-optimized trajectory")
+
+        else:
+            print("Error found in trajectory")
+            result.trajectory_error_report.PrintDebugString();
+
+    return finished
+
+
+def trajectory_config(base, base_cyclic, traj_gen_config, angles, Tf=3., N=3):
+    base_servo_mode = Base_pb2.ServoingModeInformation()
+    base_servo_mode.servoing_mode = Base_pb2.SINGLE_LEVEL_SERVOING
+    base.SetServoingMode(base_servo_mode)
+    product = base.GetProductConfiguration()
+    jointPoses = angles  # tuple(tuple())
+
+    point_num = 1
+    for q_g in jointPoses:
+        q_g = np.array(q_g)
+        q_s = np.zeros(len(base_cyclic.RefreshFeedback().actuators))
+        for i in range(len(base_cyclic.RefreshFeedback().actuators)):
+            q_s[i] = base_cyclic.RefreshFeedback().actuators[i].position
+
+        t = np.linspace(0, Tf, N)
+
+        jointP = [tuple(traj_gen_config(q_s, q_g, ti, Tf)[0]) for ti in t]
+
+        waypoints = Base_pb2.WaypointList()
+        waypoints.duration = 0.0
+        waypoints.use_optimal_blending = False
+
+        index = 0
+
+        for jointPose in jointP:
+            waypoint = waypoints.waypoints.add()
+            waypoint.name = "waypoint_" + str(index)
+            durationFactor = 1
+            # Joints/motors 5 and 7 are slower and need more time
+            if (index == 4 or index == 6):
+                durationFactor = 6  # Min 30 seconds
+
+            waypoint.angular_waypoint.CopyFrom(populateAngularPose(jointPose, durationFactor))
+            index = index + 1
+
+            # Verify validity of waypoints
+        result = base.ValidateWaypointList(waypoints);
+        if (len(result.trajectory_error_report.trajectory_error_elements) == 0):
+
+            e = threading.Event()
+            notification_handle = base.OnNotificationActionTopic(
+                check_for_end_or_abort(e),
+                Base_pb2.NotificationOptions()
+            )
+
+            print("Reaching angular pose trajectory...")
+
+            base.ExecuteWaypointTrajectory(waypoints)
+
+            print("Waiting for trajectory to finish ...")
+            finished = e.wait(100)
+            base.Unsubscribe(notification_handle)
+
+            if finished:
+                print("Angular movement completed,   Path num: " + str(point_num))
+                point_num += 1
+                if point_num == 4:
+                    ClosingGripperCommands(base, 0.7)
+            else:
+                print("Timeout on action notification wait")
+        else:
+            print("Error found in trajectory")
+            print(result.trajectory_error_report)
+            # return finished
+    return finished

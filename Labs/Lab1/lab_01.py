@@ -1,37 +1,10 @@
 #! /usr/bin/env python3
 
 import os
-import select
 import sys
-import time
-import numpy as np
-
-if os.name == 'nt':
-    import msvcrt
-else:
-    import tty
-    import termios
-
-from kortex_api.autogen.client_stubs.BaseClientRpc import BaseClient
-from kortex_api.autogen.client_stubs.BaseCyclicClientRpc import BaseCyclicClient
-
-e = """
-Communications Failed
-"""
-
-
-def getKey():
-    if os.name == 'nt':
-        return msvcrt.getche()
-    tty.setraw(sys.stdin.fileno())
-    rlist, _, _ = select.select([sys.stdin], [], [], 0.1)
-    if rlist:
-        key = sys.stdin.read(1)
-    else:
-        key = ''
-
-    termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
-    return key
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../common/robot"))
+from robot_actions import *
+import utilities
 
 
 def record(base_cyclic):
@@ -91,8 +64,6 @@ if __name__ == "__main__":
     if os.name != 'nt':
         settings = termios.tcgetattr(sys.stdin)
     try:
-        sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-        import utilities
 
         # Parse arguments
         args = utilities.parseConnectionArguments()

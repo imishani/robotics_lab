@@ -4,41 +4,26 @@ imishani@gmail.com (or imishani@andrew.cmu.edu), osherazulay@mail.tau.ac.il
 """
 
 import matplotlib.pyplot as plt
-import numpy as np
-import time
 import math
 from scipy.spatial.transform import Rotation as R
 import sys, os
 
-sys.path.insert(0, r'../common/Aruco_Tracker-master')
-from aruco_module import aruco_track
-from Lab6_car import planner, steering_angle
-# from Lab6_student import planner, steering_angle
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../common/car"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../common/robot"))
 
-from car_control import Controller
+from recorder import *
+from Labs.common.car.car_control import Controller
+
+sys.path.insert(0, r'../common/Aruco_Tracker')
+from aruco_module import aruco_track
+
 import cv2
 
+from lab6_car import planner, steering_angle
+
+# from Lab6_student import planner, steering_angle
+
 s = time.time()
-
-
-def save(saver):
-    logdir_prefix = 'lab-06'
-
-    data_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Lab6/data')
-
-    if not (os.path.exists(data_path)):
-        os.makedirs(data_path)
-
-    logdir = logdir_prefix + '_' + time.strftime("%d-%m-%Y_%H-%M-%S")
-    logdir = os.path.join(data_path, logdir)
-    if not (os.path.exists(logdir)):
-        os.makedirs(logdir)
-
-    print("\n\n\nLOGGING TO: ", logdir, "\n\n\n")
-
-    import pickle
-    with open(logdir + '/data' + '.pkl', 'wb') as h:
-        pickle.dump(saver, h)
 
 
 def calc_motor_command(angle):
@@ -136,6 +121,6 @@ if __name__ == "__main__":
         tracker.cap.release()
         cv2.destroyAllWindows()
         if input('Save data? (y,n)   ') == 'y':
-            save([path_, executed_path])
+            save([path_, executed_path], prefix='6')
             print('Saved data as list of size 2 where first element is planned path and second is executed path!')
         sys.exit(0)

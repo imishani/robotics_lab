@@ -10,10 +10,6 @@ from scipy.spatial.transform import Rotation
 import modern_robotics
 import os
 
-if os.name == 'nt':
-  import msvcrt
-else:
-  import tty, termios
 
 from kortex_api.autogen.messages import Base_pb2, BaseCyclic_pb2, Common_pb2
 import time
