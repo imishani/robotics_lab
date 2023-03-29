@@ -4,7 +4,6 @@ Deprecated==1.2.7
 imageio==2.9.0
 imageio-ffmpeg==0.4.4
 kiwisolver==1.3.1
-kortex-api==2.3.0.post34
 matplotlib==3.3.4
 modern-robotics==1.1.0
 mpmath==1.2.1
